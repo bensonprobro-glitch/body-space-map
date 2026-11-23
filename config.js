@@ -2,7 +2,7 @@
 // 時空身體地圖・空間篇｜預設設定（三層：來源 sources／判斷邏輯 logic／解釋 explain）
 // 醫師後台 doctor.html 編輯的就是這份結構；學員頁 index.html 用它跑流程與計分。
 // =====================================================================
-window.BACKEND = 'REPLACE_WITH_APPS_SCRIPT_URL';
+window.BACKEND = 'https://script.google.com/macros/s/AKfycbz8lEGJFReE5NFtCD-TPk5BOZ6q5McjiMcM2KiPZIcuFl-YCtWTg0tIO89gZBuQdIlc/exec';
 window.DEFAULT_CONFIG = {
   version: 'v0.7',
   sources: {
