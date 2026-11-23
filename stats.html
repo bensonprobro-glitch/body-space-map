@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>時空身體地圖・空間篇｜試用數據</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500&family=Noto+Serif+TC:wght@500;600&display=swap">
+<link rel="stylesheet" href="style.css">
+<style>
+body{font-size:14.5px}
+.wrap{max-width:1100px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+.sec{background:var(--paper);border-radius:6px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.kpi div{background:var(--paper);border-radius:6px;padding:12px 14px;font-family:var(--fu);font-size:12.5px;color:var(--muted)}
+.kpi b{display:block;font-size:28px;color:var(--ink);font-weight:500;font-variant-numeric:tabular-nums}
+.tbl{width:100%;border-collapse:collapse;font-family:var(--fu);font-size:13px}
+.tbl th,.tbl td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:middle}
+.tbl th{color:var(--muted);font-weight:400}
+.tbl td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.bar{height:10px;background:var(--q0);border-radius:2px;overflow:hidden;min-width:80px}
+.bar i{display:block;height:100%;background:var(--brown)}
+.bar.warn i{background:#b1463a}
+.hot{color:#b1463a;font-weight:500}
+.filters{display:flex;gap:8px;flex-wrap:wrap;font-family:var(--fu);font-size:13px;align-items:center}
+.filters button{font:inherit;background:var(--paper);border:1px solid var(--line);border-radius:99px;padding:4px 12px;cursor:pointer;color:var(--ink)}
+.filters button[aria-pressed="true"]{background:var(--brown);color:var(--paper);border-color:var(--brown)}
+.scroll{overflow-x:auto}
+.msg{white-space:pre-wrap;font-family:var(--fu);font-size:13px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"><div class="sec"><p class="ui">讀取中⋯</p></div></div>
+<script src="config.js"></script>
+<script>
+const $=s=>document.querySelector(s), esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const KEY=new URLSearchParams(location.search).get('key')||'';
+const NAME={cover:'封面',brief:'四件事說明',rw1:'第1段完成',rw2:'第2段完成',rw3:'第3段完成',ph1:'拍照範例',ph2:'怎麼拍',ph3:'選照片',points:'確認點位',look:'看哪裡',inter1:'過場：謝謝你',inter2:'過場：什麼是空間',inter3:'過場：痛不一定是源頭',scan:'分析動畫',report1:'報告：一眼看懂',report2:'報告 p2',report3:'報告 p3',report4:'報告 p4',report5:'報告 p5',report6:'報告 p6',report7:'報告 p7',report8:'報告 p8'};
+const C=window.DEFAULT_CONFIG; [...C.sources.questions,...C.sources.moves,...C.sources.compares].forEach(x=>NAME[x.id]=x.id+' '+(x.name||x.t||'').slice(0,12));
+const ORDER=['cover','brief',...C.sources.questions.map(q=>q.id),'rw1',...C.sources.moves.map(m=>m.id),'rw2','ph1','ph2','ph3','points','look',...C.sources.compares.map(c=>c.id),'rw3','inter1','inter2','inter3','scan','report1','report2','report3','report4','report5','report6','report7','report8'];
+let DATA=null, ROLE='全部';
+const med=a=>{ if(!a.length) return 0; const s=[...a].sort((x,y)=>x-y), m=s.length>>1; return s.length%2?s[m]:(s[m-1]+s[m])/2; };
+const fmt=ms=>ms>=60000?(ms/60000).toFixed(1)+' 分':Math.round(ms/1000)+' 秒';
+async function load(){
+  if(!KEY){ $('#app').innerHTML='<div class="sec"><h2>需要密鑰</h2><p class="ui">請用 Benson 拿到的完整連結（網址後面有 ?key=⋯）開啟。</p></div>'; return; }
+  try{ const r=await fetch(window.BACKEND+'?action=stats&key='+encodeURIComponent(KEY)); DATA=await r.json(); }catch(e){ DATA={ok:false}; }
+  if(!DATA.ok){ $('#app').innerHTML='<div class="sec"><h2>讀不到資料</h2><p class="ui">密鑰不對，或後端還沒部署好。</p></div>'; return; }
+  render();
+}
+function render(){
+  const E=DATA.events.map(r=>({at:new Date(r[0]), sid:r[1], role:r[2]||'未選', ver:r[3], t:r[4], n:r[5], ms:+r[6]||0, k:r[7], d:r[8]}));
+  const roles=['全部',...new Set(E.filter(e=>e.t!=='open'||true).map(e=>e.role).filter(r=>r&&r!=='醫師後台'))];
+  const S={}; E.forEach(e=>{ if(e.role==='醫師後台') return; const s=S[e.sid]||(S[e.sid]={sid:e.sid, role:'未選', views:[], leaves:{}, done:false, start:e.at, end:e.at, events:[]}); if(e.role&&e.role!=='未選') s.role=e.role; s.events.push(e); if(e.at<s.start) s.start=e.at; if(e.at>s.end) s.end=e.at;
+    if(e.t==='view'){ s.views.push(e.n); } if(e.t==='leave'&&e.n){ (s.leaves[e.n]=s.leaves[e.n]||[]).push(e.ms); } if(e.t==='complete') s.done=true; });
+  let sess=Object.values(S).filter(s=>s.views.length); if(ROLE!=='全部') sess=sess.filter(s=>s.role===ROLE);
+  const started=sess.filter(s=>s.views.some(v=>v!=='cover')), done=sess.filter(s=>s.done);
+  const reach={}, dwell={}, drop={}; sess.forEach(s=>{ new Set(s.views).forEach(v=>reach[v]=(reach[v]||0)+1); Object.entries(s.leaves).forEach(([n,a])=>{ (dwell[n]=dwell[n]||[]).push(a.reduce((x,y)=>x+y,0)); }); if(!s.done){ const last=s.views[s.views.length-1]; drop[last]=(drop[last]||0)+1; } });
+  const screens=ORDER.filter(n=>reach[n]).concat(Object.keys(reach).filter(n=>!ORDER.includes(n)));
+  const medAll=screens.map(n=>med(dwell[n]||[])), maxMed=Math.max(1,...medAll), maxDrop=Math.max(1,...Object.values(drop));
+  const total=done.map(s=>{ const c=s.events.find(e=>e.t==='complete'); try{ return JSON.parse(c.d).secs*1000; }catch(e){ return s.end-s.start; } });
+  const fit={}; E.filter(e=>e.t==='fit').forEach(e=>fit[e.k]=(fit[e.k]||0)+1);
+  const res=DATA.results.filter(r=>ROLE==='全部'||r[2]===ROLE), mainCount={}; res.forEach(r=>mainCount[r[4]]=(mainCount[r[4]]||0)+1);
+  const photo={}; E.filter(e=>e.t==='photo').forEach(e=>photo[e.k]=(photo[e.k]||0)+1);
+  const tests=DATA.tests, agree=tests.filter(t=>t[5]==='一致').length;
+  $('#app').innerHTML=`
+  <div><span class="kicker">時空身體地圖・空間篇</span><h1 class="mark">試用數據</h1><p class="muted ui sm">資料到 ${new Date().toLocaleString('zh-TW',{hour12:false})}｜<a href="https://docs.google.com/spreadsheets/d/1_3nSR8jH8oweseA9h9xYdeHMgI93kY9MZsqwPHA5YR0" target="_blank" style="color:var(--brown)">原始資料試算表 ↗</a>｜<a href="#" onclick="load();return false" style="color:var(--brown)">重新整理</a></p></div>
+  <div class="filters">身分：${roles.map(r=>`<button data-role="${esc(r)}" aria-pressed="${ROLE===r}">${esc(r)}</button>`).join('')}</div>
+  <div class="kpi"><div>打開的人<b>${sess.length}</b></div><div>按了開始<b>${started.length}</b></div><div>完成到報告<b>${done.length}</b></div><div>完成率（按開始後）<b>${started.length?Math.round(done.length/started.length*100)+'%':'—'}</b></div><div>完成所需時間（中位數）<b>${total.length?fmt(med(total)):'—'}</b></div><div>回報<b>${DATA.reports.length}</b></div></div>
+  <div class="sec"><h2>每一頁：多少人到、停多久、在這裡離開</h2><p class="muted sm ui">紅字＝停留特別久（可能看不懂）或很多人在這頁離開。停留時間用中位數，排除極端值。</p><div class="scroll"><table class="tbl">
+    <tr><th>畫面</th><th>到達人數</th><th></th><th>停留（中位數）</th><th></th><th>在這頁離開</th></tr>
+    ${screens.map((n,i)=>{ const r=reach[n]||0, m=medAll[i], dp=drop[n]||0, hotM=m>=maxMed*.6&&m>20000, hotD=dp>=Math.max(2,maxDrop*.6);
+      return `<tr><td>${esc(NAME[n]||n)}</td><td class="n">${r}（${sess.length?Math.round(r/sess.length*100):0}%）</td><td><div class="bar"><i style="width:${sess.length?r/sess.length*100:0}%"></i></div></td><td class="n ${hotM?'hot':''}">${m?fmt(m):'—'}</td><td><div class="bar ${hotM?'warn':''}"><i style="width:${m/maxMed*100}%"></i></div></td><td class="n ${hotD?'hot':''}">${dp||''}</td></tr>`; }).join('')}
+  </table></div></div>
+  <div class="sec"><h2>結果與感受</h2><div class="kpi">${Object.entries(mainCount).map(([k,v])=>`<div>結果「${esc(k)}」<b>${v}</b></div>`).join('')||'<div>還沒有結果</div>'}</div>
+    <div class="kpi">${['很像','有一點像','不太像'].map(k=>`<div>覺得「${k}」<b>${fit[k]||0}</b></div>`).join('')}${Object.entries(photo).map(([k,v])=>`<div>照片：${{upload:'自己上傳',demo:'用示範照',skip:'跳過拍照'}[k]||k}<b>${v}</b></div>`).join('')}</div></div>
+  <div class="sec"><h2>醫師受試者測試</h2><div class="kpi"><div>測試人數<b>${tests.length}</b></div><div>一致<b>${agree}</b></div><div>一致率<b>${tests.length?Math.round(agree/tests.length*100)+'%':'—'}</b></div></div>
+    <div class="scroll"><table class="tbl"><tr><th>時間</th><th>送出人</th><th>代號</th><th>工具</th><th>醫師</th><th>結果</th><th>備註</th></tr>${tests.slice().reverse().map(t=>`<tr><td>${new Date(t[0]).toLocaleString('zh-TW',{hour12:false})}</td><td>${esc(t[1])}</td><td>${esc(t[2])}</td><td>${esc(t[3])}</td><td>${esc(t[4])}</td><td>${esc(t[5])}</td><td>${esc(t[8])}</td></tr>`).join('')}</table></div></div>
+  <div class="sec"><h2>回報（最新在上）</h2><div class="scroll"><table class="tbl"><tr><th>時間</th><th>身分</th><th>類型</th><th>畫面</th><th>內容</th></tr>${DATA.reports.slice().reverse().map(r=>`<tr><td>${new Date(r[0]).toLocaleString('zh-TW',{hour12:false})}</td><td>${esc(r[2])}</td><td>${esc(r[4])}</td><td>${esc(r[5])}</td><td class="msg">${esc(String(r[7]).split('\n\n').slice(1).join('\n\n')||r[7])}</td></tr>`).join('')}</table></div></div>
+  <div class="sec"><h2>醫師送出的設定</h2><div class="scroll"><table class="tbl"><tr><th>時間</th><th>送出人</th><th>版本</th><th>修改摘要</th></tr>${DATA.configs.slice().reverse().map(r=>`<tr><td>${new Date(r[0]).toLocaleString('zh-TW',{hour12:false})}</td><td>${esc(r[1])}</td><td>${esc(r[2])}</td><td class="msg">${esc(String(r[3]).slice(0,600))}</td></tr>`).join('')}</table></div><p class="muted sm ui">完整設定檔在信件附件，或試算表的 configs 分頁。</p></div>`;
+  document.querySelectorAll('[data-role]').forEach(b=>b.onclick=()=>{ ROLE=b.dataset.role; render(); });
+}
+load();
+</script>
+</body>
+</html>

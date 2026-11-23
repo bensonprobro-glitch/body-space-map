@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>時空身體地圖・空間篇｜醫師後台</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500&family=Noto+Serif+TC:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="style.css">
+<style>
+body{font-size:15px;padding-bottom:40px}
+.wrap{max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+.hd{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:10px;border-bottom:1px solid var(--line);padding-bottom:12px}
+.tabs{display:flex;gap:4px;flex-wrap:wrap;position:sticky;top:0;z-index:5;background:var(--bg);padding:6px 0}
+.tabs button{font-family:var(--fu);font-size:14.5px;letter-spacing:.08em;background:var(--paper);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:9px 16px;cursor:pointer}
+.tabs button[aria-pressed="true"]{background:var(--brown);color:var(--paper);border-color:var(--brown)}
+.intro{background:var(--paper);border-radius:6px;padding:14px 16px;font-size:14.5px;line-height:1.8}
+.grid2{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:14px;align-items:start}
+.sec{background:var(--paper);border-radius:6px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.item{border:1px solid var(--line);border-radius:6px;padding:12px;display:flex;flex-direction:column;gap:8px;background:var(--bg)}
+.item.off{opacity:.55}
+.item .ih{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.item .ih b{font-size:16px}
+.f{display:grid;grid-template-columns:7.5em 1fr;gap:8px;align-items:start;font-family:var(--fu);font-size:13.5px}
+.f>span{color:var(--muted);padding-top:8px}
+.f input[type=text],.f input[type=number],.f select,.f textarea{font-family:var(--fu);font-size:14px;width:100%;border:1px solid var(--line);border-radius:4px;padding:7px 9px;background:var(--paper);color:var(--ink)}
+.f textarea{min-height:56px}
+.f input[type=number]{width:100px}
+.inl{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.tog{font-family:var(--fu);font-size:13px;display:inline-flex;gap:6px;align-items:center;cursor:pointer}
+pre.rule{background:#2b2420;color:#f1e4d0;border-radius:6px;padding:14px;font-family:ui-monospace,Menlo,monospace;font-size:12.5px;line-height:1.7;white-space:pre-wrap;margin:0;letter-spacing:0}
+.sticky{position:sticky;top:56px}
+.addbtn{align-self:flex-start}
+.cmpgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.cmpgrid figure{margin:0;display:flex;flex-direction:column;gap:4px;font-family:var(--fu);font-size:13px}
+.cmpgrid img{width:100%;border-radius:4px}
+.seg{display:flex;gap:4px}
+.seg button{flex:1;font-family:var(--fu);font-size:13px;background:var(--soft);border:1px solid transparent;border-radius:4px;padding:6px;cursor:pointer;color:var(--ink)}
+.seg button[aria-pressed="true"]{background:var(--brown2);border-color:var(--brown)}
+.tbl{width:100%;border-collapse:collapse;font-family:var(--fu);font-size:13px}
+.tbl th,.tbl td{border-bottom:1px solid var(--line);padding:6px;text-align:left;vertical-align:top}
+.ok{color:#3c7a4e} .bad{color:#b1463a}
+.kpi{display:flex;gap:10px;flex-wrap:wrap}
+.kpi div{background:var(--soft);border-radius:6px;padding:10px 14px;font-family:var(--fu);font-size:13px;color:var(--muted)}
+.kpi b{display:block;font-size:24px;color:var(--ink);font-weight:500}
+.diff{font-family:var(--fu);font-size:13px;white-space:pre-wrap;background:var(--soft);border-radius:6px;padding:12px;max-height:340px;overflow:auto;line-height:1.7}
+#cv{max-width:100%;max-height:420px;display:block;border-radius:6px}
+@media (max-width:860px){.grid2{grid-template-columns:1fr}.sticky{position:static}}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<script src="config.js"></script>
+<script src="engine.js"></script>
+<script>
+const DRAFT='sk_cfg_draft', TESTS='sk_doc_tests';
+let CFG = ls(DRAFT) || clone(window.DEFAULT_CONFIG);
+const D = window.DEFAULT_CONFIG;
+const T = {tab:'src', by: ls('sk_doc_name')||'', img:null, lm:null, crops:null, cmp:{}, a:{}, mv:{}, code:'', docJ:null, note:''};
+Tele.init(CFG.version+'-doctor','醫師後台');
+const save = () => { ls(DRAFT, CFG); };
+const getP = (o,p) => p.split('.').reduce((x,k)=>x==null?x:x[k], o);
+function setP(o,p,v){ const ks=p.split('.'); let x=o; ks.slice(0,-1).forEach(k=>{ if(x[k]==null) x[k]={}; x=x[k]; }); x[ks[ks.length-1]]=v; }
+const QSEL = (path, val, extra='') => `<select data-p="${path}">${extra}${QUADS.map(q=>`<option value="${q}" ${val===q?'selected':''}>${QN[q]}</option>`).join('')}</select>`;
+const fld = (label, path, type='text', o={}) => { const v=getP(CFG,path);
+  if(type==='area') return `<label class="f"><span>${label}</span><textarea data-p="${path}">${esc(v)}</textarea></label>`;
+  if(type==='lines') return `<label class="f"><span>${label}</span><textarea data-p="${path}" data-t="lines" placeholder="一行一個">${esc((v||[]).join('\n'))}</textarea></label>`;
+  if(type==='num') return `<label class="f"><span>${label}</span><div class="inl"><input type="number" step="${o.step||0.1}" min="${o.min??0}" max="${o.max??10}" data-p="${path}" data-t="num" value="${v}">${o.hint?`<span class="muted sm">${o.hint}</span>`:''}</div></label>`;
+  if(type==='half') return `<label class="f"><span>${label}</span><select data-p="${path}"><option value="U" ${v==='U'?'selected':''}>上半身（手、肩、上背）</option><option value="D" ${v==='D'?'selected':''}>下半身（腳、膝、骨盆）</option></select></label>`;
+  return `<label class="f"><span>${label}</span><input type="text" data-p="${path}" value="${esc(v)}"></label>`; };
+const tog = (path, label='啟用') => `<label class="tog"><input type="checkbox" data-p="${path}" data-t="bool" ${getP(CFG,path)?'checked':''}> ${label}</label>`;
+
+function render(){
+  const tabs=[['src','① 來源'],['logic','② 判斷邏輯'],['exp','③ 解釋'],['test','④ 受試者測試'],['send','⑤ 預覽與送出']];
+  const body={src:vSrc, logic:vLogic, exp:vExp, test:vTest, send:vSend}[T.tab]();
+  $('#app').innerHTML = `<div class="hd"><div><span class="kicker">中醫師的身體自我修復學｜空間篇</span><h1 class="mark">醫師後台</h1></div>
+    <div class="ui sm muted">基於 ${esc(CFG.version)}｜你的修改會自動存在這台電腦｜<a href="index.html" target="_blank" style="color:var(--brown)">學員試用頁 ↗</a></div></div>
+    <div class="tabs">${tabs.map(([k,t])=>`<button data-tab="${k}" aria-pressed="${T.tab===k}">${t}</button>`).join('')}</div>${body}`;
+  Tele.screen('doctor-'+T.tab); afterRender();
+}
+function vSrc(){ const s=CFG.sources;
+  return `<div class="intro"><b>來源</b>：學員要回答什麼、做什麼動作、照片看哪裡。每一項都可以改文字、停用、調整「算在上半身或下半身」和「權重（分數有多重）」。改完到「⑤ 預覽與送出」看學員畫面，再送出。</div>
+  <div class="grid2"><div class="sec"><h2>問診題</h2>
+    ${s.questions.map((q,i)=>{ const P='sources.questions.'+i, sc=q.score||{mode:'none'}; return `<div class="item ${q.enabled?'':'off'}"><div class="ih"><b>${q.id}　${esc(q.t)}</b>${tog(P+'.enabled')}</div>
+      ${fld('題目',P+'.t')}${fld('說明',P+'.sub')}
+      ${q.type==='choice'||q.type==='pics'?fld('選項',P+'.o','lines'):`<p class="muted sm ui">作答方式：${q.type==='bodymap'?'在人體照片上點痠痛位置（左右各 8 處）':'點選身體四個區塊之一'}</p>`}
+      <label class="f"><span>計分方式</span><select data-p="${P}.score.mode" data-rerender="1">
+        <option value="none" ${sc.mode==='none'?'selected':''}>不計分（只用在報告）</option>
+        ${q.type==='quadmap'?`<option value="quad" ${sc.mode==='quad'?'selected':''}>點到的區塊加分</option>`:''}
+        ${q.type==='choice'?`<option value="map" ${sc.mode==='map'?'selected':''}>每個選項對應一個區塊</option>`:''}</select></label>
+      ${sc.mode!=='none'?fld('權重',P+'.score.w','num',{hint:'選到時加幾分'}):''}
+      ${sc.mode==='map'?(q.o||[]).map(o=>`<label class="f"><span>「${esc(o)}」→</span><select data-p="${P}.score.map.${o}"><option value="">不加分</option>${QUADS.map(x=>`<option value="${x}" ${(sc.map||{})[o]===x?'selected':''}>${QN[x]}</option>`).join('')}</select></label>`).join(''):''}
+      ${fld('備註／依據',P+'.note','area')}</div>`; }).join('')}
+    <button class="btn ghost small addbtn" data-act="addQ">＋ 新增問診題（單選）</button></div>
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <div class="sec"><h2>動作</h2>
+    ${s.moves.map((m,i)=>{ const P='sources.moves.'+i; return `<div class="item ${m.enabled?'':'off'}"><div class="ih"><b>${m.id}　${esc(m.name)}</b>${tog(P+'.enabled')}</div>
+      ${fld('名稱',P+'.name')}${fld('問學員',P+'.ask')}${fld('算在',P+'.half','half')}${fld('權重倍數',P+'.w','num',{hint:'× 感覺分數'})}${fld('教學文字',P+'.teach','area')}
+      ${(m.frames||[]).map((fr,j)=>fld('步驟 '+(j+1),P+'.frames.'+j+'.1')).join('')}${fld('備註／依據',P+'.note','area')}</div>`; }).join('')}
+    <button class="btn ghost small addbtn" data-act="addM">＋ 新增動作（示範圖由 PPA 補拍）</button></div>
+    <div class="sec"><h2>照片視診</h2><p class="muted sm ui">${esc(s.photoNotes)}</p>
+    ${s.compares.map((c,i)=>{ const P='sources.compares.'+i; return `<div class="item ${c.enabled?'':'off'}"><div class="ih"><b>${c.id}　${esc(c.name)}</b>${tog(P+'.enabled')}</div>
+      ${fld('問學員',P+'.ask')}${fld('怎麼看',P+'.how','area')}${fld('算在',P+'.half','half')}${fld('權重',P+'.w','num')}${fld('教學：看哪裡',P+'.see','area')}${fld('教學：代表什麼',P+'.mean','area')}${fld('備註／依據',P+'.note','area')}</div>`; }).join('')}
+    ${fld('想新增或調整的觀察位置、點位（寫下需求，PPA 製作）','sources.photoRequest','area')}</div>
+  </div></div>`; }
+function vLogic(){ const L=CFG.logic;
+  return `<div class="intro"><b>判斷邏輯</b>：所有答案怎麼變成「哪一區最辛苦」。左邊調數字，右邊即時顯示目前的規則（像程式碼一樣，一條一條列出）。想看實際受試者怎麼被算，到「④ 受試者測試」。</div>
+  <div class="grid2"><div class="sec"><h2>感覺的分數（動作題）</h2>
+    ${Object.keys(L.feelWeight).map(k=>fld('「'+k+'」','logic.feelWeight.'+k,'num',{step:0.1,max:3})).join('')}
+    <h2>電腦自動量的角度</h2><div class="inl">${tog('logic.aiMeasure.enabled','使用電腦量的肩膀、骨盆傾斜')}</div>
+    ${fld('權重','logic.aiMeasure.w','num',{step:0.1,max:3,hint:'照片量角度誤差大，建議小'})}${fld('角度門檻（度）','logic.aiMeasure.minDeg','num',{step:0.5,max:15})}
+    <h2>判定門檻</h2>${fld('最低辛苦指數','logic.minScore','num',{step:0.05,max:1,hint:'0.2 = 20 分'})}${fld('至少幾種來源同向','logic.minAgree','num',{step:1,min:1,max:3,hint:'回答、動作、照片三種'})}
+    ${fld('想調整但這裡做不到的邏輯（寫下來）','logic.note','area')}</div>
+  <div class="sec sticky"><h2>目前的規則</h2><pre class="rule" id="rules">${esc(rulesText(CFG))}</pre></div></div>`; }
+function vExp(){ const E=CFG.explain, unitSel=(p,v)=>`<label class="f"><span>優先看的章節</span><select data-p="${p}">${E.units.map(u=>`<option value="${u.id}" ${v===u.id?'selected':''}>${u.id} ${esc(u.name)}</option>`).join('')}</select></label>`;
+  return `<div class="intro"><b>解釋</b>：判斷出來之後，報告怎麼用白話告訴學員結論、先看哪一章、今天可以先做什麼。</div>
+  <div class="grid2"><div class="sec"><h2>四個區塊的結論</h2>
+    ${QUADS.map(q=>{ const P='explain.quadrants.'+q; return `<div class="item"><div class="ih"><b>最辛苦＝${QN[q]}</b></div>${fld('白話的區域',P+'.area')}${fld('一句話結論',P+'.say','area')}${unitSel(P+'.unit',E.quadrants[q].unit)}${fld('今天可以先做',P+'.todo','area')}</div>`; }).join('')}
+    <div class="item"><div class="ih"><b>不明顯（沒有通過判定）</b></div>${fld('一句話結論','explain.none.say','area')}${unitSel('explain.none.unit',E.none.unit)}${fld('今天可以先做','explain.none.todo','area')}</div></div>
+  <div style="display:flex;flex-direction:column;gap:14px"><div class="sec"><h2>課程章節</h2>
+    ${E.units.map((u,i)=>`<div class="item"><div class="ih"><b>${u.id}</b></div>${fld('章節','explain.units.'+i+'.ch')}${fld('單元名稱','explain.units.'+i+'.name')}${fld('為什麼看','explain.units.'+i+'.why','area')}</div>`).join('')}
+    <button class="btn ghost small addbtn" data-act="addU">＋ 新增章節</button></div>
+    <div class="sec"><h2>依「最常維持的姿勢」給的建議</h2>${Object.keys(E.fixedTodo).map(k=>fld(k,'explain.fixedTodo.'+k,'area')).join('')}</div>
+    <div class="sec"><h2>其他文字</h2>${Object.keys(E.feelText).map(k=>fld('感覺「'+k.slice(0,4)+'」','explain.feelText.'+k,'area')).join('')}${fld('睡前動作說明','explain.nightMove','area')}${fld('不是診斷的提醒','explain.disclaimer','area')}</div></div></div>`; }
+function testInputs(){
+  const s=CFG.sources, qs=s.questions.filter(q=>q.enabled&&q.score&&q.score.mode!=='none'), ms=s.moves.filter(m=>m.enabled), feel=Object.keys(CFG.logic.feelWeight);
+  return `${qs.map(q=>`<label class="f"><span>${q.id} ${esc(q.t.slice(0,10))}</span><select data-tq="${q.key}"><option value="">（沒有／未答）</option>${q.score.mode==='quad'?QUADS.map(x=>`<option value="${x}" ${T.a[q.key]===x?'selected':''}>${QN[x]}</option>`).join(''):(q.o||[]).map(o=>`<option ${T.a[q.key]===o?'selected':''}>${esc(o)}</option>`).join('')}</select></label>`).join('')}
+    ${ms.map(m=>{ const v=T.mv[m.id]||{}; return `<label class="f"><span>${m.id} ${esc(m.name)}</span><div class="inl"><select data-tm="${m.id}" data-k="side">${['','左邊','右邊','兩邊差不多','兩邊都很難'].map(o=>`<option value="${o}" ${v.side===o?'selected':''}>${o||'（未做）'}</option>`).join('')}</select><select data-tm="${m.id}" data-k="feel">${['',...feel].map(o=>`<option value="${o}" ${v.feel===o?'selected':''}>${o||'（感覺）'}</option>`).join('')}</select></div></label>`; }).join('')}`; }
+function vTest(){
+  const tests=ls(TESTS)||[], agree=tests.filter(t=>t.agree).length;
+  return `<div class="intro"><b>受試者測試</b>：用診間受試者的背面照和回答，跑一次目前的判斷，再跟你自己的判斷比對。<b>照片只在你這台電腦裡處理，不會上傳</b>；送出的只有代號、答案、分數和你的判斷。改了「① 來源」或「② 判斷邏輯」後，可以按「用目前設定重算全部」看一致率有沒有變好。</div>
+  <div class="grid2"><div class="sec">
+    <div class="inl"><label class="f" style="flex:1"><span>受試者代號</span><input type="text" id="tcode" value="${esc(T.code)}" placeholder="例如 C01（不要寫姓名）"></label></div>
+    <div class="inl"><label class="btn small" for="tfile">選受試者背面照</label><input type="file" id="tfile" accept="image/*"><button class="btn ghost small" data-act="tdemo">用示範照片</button><span class="muted sm ui" id="tmsg"></span></div>
+    ${T.img?`<canvas id="cv"></canvas><p class="muted sm ui">點位不對可以拖曳；拖完會自動更新下面的放大圖。</p>
+      <div class="cmpgrid">${CFG.sources.compares.filter(c=>c.enabled).map(c=>{ const cr=T.crops&&T.crops[c.key], v=T.cmp[c.key]; return `<figure>${cr?(cr.one?`<img src="${cr.one}" alt="">`:`<div class="pair"><img src="${cr.L}" alt=""><img src="${cr.R}" alt=""></div>`):''}<span><b>${c.id}</b> ${esc(c.ask)}</span><div class="seg">${[['L','左'],['R','右'],['=','差不多']].map(([k,t])=>`<button data-tc="${c.key}" data-v="${k}" aria-pressed="${v===k}">${t}</button>`).join('')}</div></figure>`; }).join('')}</div>`:'<p class="muted sm ui">還沒選照片。也可以不用照片，只用問診和動作測試。</p>'}
+    <h3>問診與動作</h3>${testInputs()}
+  </div>
+  <div class="sec sticky" id="tres"></div></div>
+  <div class="sec"><div class="ih" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><h2>測試紀錄</h2><div class="inl"><button class="btn ghost small" data-act="rescore">用目前設定重算全部</button><button class="btn ghost small" data-act="cleartests">清空（只清這台電腦）</button></div></div>
+    <div class="kpi"><div>測試人數<b>${tests.length}</b></div><div>一致<b>${agree}</b></div><div>一致率<b>${tests.length?Math.round(agree/tests.length*100)+'%':'—'}</b></div><div>11/9 過關線<b>70%</b></div></div>
+    <div style="overflow-x:auto"><table class="tbl"><tr><th>代號</th><th>時間</th><th>工具判斷</th><th>醫師判斷</th><th>結果</th><th>重算後</th><th>備註</th></tr>
+    ${tests.map(t=>`<tr><td>${esc(t.code)}</td><td>${esc(t.when)}</td><td>${esc(t.tool)}</td><td>${esc(t.doc)}</td><td class="${t.agree?'ok':'bad'}">${t.agree?'一致':'不一致'}</td><td>${t.re?`<span class="${t.re.agree?'ok':'bad'}">${esc(t.re.tool)}｜${t.re.agree?'一致':'不一致'}</span>`:''}</td><td>${esc(t.note)}</td></tr>`).join('')||'<tr><td colspan="7" class="muted">還沒有測試紀錄</td></tr>'}</table></div></div>`; }
+function testAns(){ return {a:T.a, mv:T.mv, cmp:T.img?T.cmp:null, meas:T.img&&T.lm?measure(T.lm):null}; }
+async function renderTestResult(){ const box=$('#tres'); if(!box) return; const r=score(CFG, testAns()); await demoP;
+  const img=T.img||DEMO_IMG, lm=T.img?T.lm:DEMO_LM;
+  box.innerHTML = `<h2>這位受試者的結果</h2><div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap"><img src="${quadPhoto(img,lm,r.qs,r.main,360,true)}" style="width:170px;border-radius:6px" alt=""><div class="ui"><div class="muted sm">工具判斷</div><div style="font-size:26px;font-family:var(--fs)">${r.main?QN[r.main]:'不明顯'}</div>${r.second?`<div class="muted sm">第二：${QN[r.second]}</div>`:''}</div></div>
+    <pre class="rule">${esc(traceText(CFG,r))}</pre>
+    <h3>你的判斷（診間觸診／看診）</h3><div class="seg">${[...QUADS,'none'].map(q=>`<button data-act="tdoc" data-v="${q}" aria-pressed="${T.docJ===q}">${q==='none'?'不明顯':QN[q]}</button>`).join('')}</div>
+    ${T.docJ?`<p class="ui ${(T.docJ==='none'?!r.main:T.docJ===r.main)?'ok':'bad'}" style="font-size:16px">${(T.docJ==='none'?!r.main:T.docJ===r.main)?'✓ 一致':'✗ 不一致'}</p>`:''}
+    <label class="f"><span>備註</span><textarea id="tnote" placeholder="例如：觸診右肩胛很緊、腳跟其實沒歪">${esc(T.note)}</textarea></label>
+    <button class="btn" data-act="tsave" ${T.docJ?'':'disabled'}>記錄這筆並送出</button>`; }
+function vSend(){ const changes=diffCfg(D, CFG);
+  return `<div class="intro"><b>預覽與送出</b>：先「預覽學員畫面」確認改得對，再按「送出給 PressPlay」。送出後 Benson 會收到一封信，附上你改的每一處和完整設定檔，下一版就會照這份更新。</div>
+  <div class="grid2"><div class="sec"><h2>你改了這些地方（${changes.length} 處）</h2><div class="diff">${esc(changes.join('\n'))||'還沒有修改'}</div></div>
+  <div class="sec"><label class="f"><span>送出人</span><input type="text" id="by" value="${esc(T.by)}" placeholder="例如 黃獻銘醫師"></label>
+    <label class="f"><span>給 Benson 的話</span><textarea id="msg" placeholder="想補充的說明（選填）"></textarea></label>
+    <button class="btn ghost" data-act="preview">預覽學員畫面（新分頁）</button>
+    <button class="btn" data-act="send" ${changes.length?'':'disabled'}>送出給 PressPlay</button>
+    <div class="inl"><button class="btn ghost small" data-act="download">下載設定檔</button><label class="btn ghost small" for="cfgfile">讀入設定檔</label><input type="file" id="cfgfile" accept="application/json"><button class="btn ghost small" data-act="reset">全部還原成預設</button></div></div></div>`; }
+// ---------- 變更摘要 ----------
+const LBL={t:'題目',sub:'說明',o:'選項',name:'名稱',ask:'問學員',how:'怎麼看',half:'算在',w:'權重',teach:'教學文字',see:'教學：看哪裡',mean:'教學：代表什麼',enabled:'啟用',note:'備註',area:'白話區域',say:'一句話結論',unit:'優先章節',todo:'今天可以先做',ch:'章節',why:'為什麼看',mode:'計分方式',minScore:'最低辛苦指數',minAgree:'至少幾種來源同向',minDeg:'角度門檻',photoRequest:'照片點位需求',nightMove:'睡前動作說明',disclaimer:'不是診斷的提醒'};
+function flat(o, pre, out){ if(Array.isArray(o)&&o.length&&typeof o[0]==='object'&&!Array.isArray(o[0])&&o[0].id){ o.forEach(x=>flat(x, pre+'〔'+x.id+'〕', out)); return out; }
+  if(o&&typeof o==='object'&&!Array.isArray(o)){ Object.keys(o).forEach(k=>flat(o[k], pre?pre+'.'+k:k, out)); return out; } out[pre]=o; return out; }
+const SEC={questions:'問診',moves:'動作',compares:'照片',units:'章節',quadrants:'結論',feelWeight:'感覺分數',aiMeasure:'電腦量角度',fixedTodo:'姿勢建議',feelText:'感覺說明',score:'計分',map:'對應',none:'不明顯',frames:'步驟'};
+const nice = p => p.replace(/^(sources|logic|explain)\./,'').split('.').map(k=>LBL[k]||SEC[k]||QN[k]||(/^\d+$/.test(k)?'':k)).filter(Boolean).join(' ').replace(/\s+〔/g,'〔').trim();
+const show = v => Array.isArray(v)?v.map(x=>Array.isArray(x)?x[1]:x).join('／'):typeof v==='boolean'?(v?'是':'否'):v==null?'（無）':String(v);
+function diffCfg(a,b){ const A=flat(a,'',{}), B=flat(b,'',{}), keys=[...new Set([...Object.keys(A),...Object.keys(B)])].filter(k=>k!=='version'), out=[];
+  keys.forEach(k=>{ if(JSON.stringify(A[k])!==JSON.stringify(B[k])){ if(!(k in A)) out.push(`＋ 新增｜${nice(k)}：${show(B[k])}`); else if(!(k in B)) out.push(`－ 刪除｜${nice(k)}`); else out.push(`✎ ${nice(k)}\n    原本：${show(A[k])}\n    改成：${show(B[k])}`); } }); return out; }
+// ---------- 事件 ----------
+document.addEventListener('input', e=>{ const el=e.target, p=el.dataset.p; if(!p) return; let v=el.type==='checkbox'?el.checked:el.value; if(el.dataset.t==='num') v=parseFloat(v)||0; if(el.dataset.t==='lines') v=v.split('\n').map(x=>x.trim()).filter(Boolean);
+  setP(CFG,p,v); save(); const r=$('#rules'); if(r) r.textContent=rulesText(CFG); if(el.dataset.rerender||el.dataset.t==='bool') render(); });
+document.addEventListener('change', async e=>{ const el=e.target;
+  if(el.dataset.tq!=null){ T.a[el.dataset.tq]=el.value||undefined; renderTestResult(); return; }
+  if(el.dataset.tm){ const m=T.mv[el.dataset.tm]||(T.mv[el.dataset.tm]={}); m[el.dataset.k]=el.value||undefined; renderTestResult(); return; }
+  if(el.id==='tfile'&&el.files[0]){ $('#tmsg').textContent='AI 找點中⋯（照片不會上傳）'; const c=await fileToCanvas(el.files[0]), d=await detect(c); T.img=c; T.lm=d.lm; T.cmp={}; const m=makeCrops(c,d.lm); T.crops=m.crops; Tele.ev('test_photo',{k:d.ai}); render(); return; }
+  if(el.id==='cfgfile'&&el.files[0]){ try{ const j=JSON.parse(await el.files[0].text()); if(j.sources&&j.logic&&j.explain){ CFG=j; save(); render(); alert2('已讀入設定檔'); } }catch(err){ alert2('這個檔案讀不出來'); } return; }
+  if(el.id==='tcode') T.code=el.value; if(el.id==='by'){ T.by=el.value; ls('sk_doc_name',T.by); }
+});
+document.addEventListener('click', async e=>{ const b=e.target.closest('[data-tab],[data-act],[data-tc]'); if(!b) return;
+  if(b.dataset.tab){ T.tab=b.dataset.tab; render(); return; }
+  if(b.dataset.tc){ T.cmp[b.dataset.tc]=b.dataset.v; b.parentNode.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===b))); renderTestResult(); return; }
+  const a=b.dataset.act;
+  if(a==='addQ'){ const n=CFG.sources.questions.length+1; CFG.sources.questions.push({id:'Q'+n+'n', enabled:true, key:'q'+Date.now().toString(36), type:'choice', t:'新的問題', sub:'', o:['是','否'], score:{mode:'none',w:1,map:{}}, note:'醫師新增'}); save(); render(); return; }
+  if(a==='addM'){ const n=CFG.sources.moves.length+1; CFG.sources.moves.push({id:'M'+n+'n', enabled:true, name:'新的動作', half:'U', w:1, frames:[], ask:'哪一邊比較卡？', teach:'', note:'醫師新增，示範圖由 PPA 補拍'}); save(); render(); return; }
+  if(a==='addU'){ CFG.explain.units.push({id:'U'+(CFG.explain.units.length+1), ch:'', name:'新的章節', why:''}); save(); render(); return; }
+  if(a==='tdemo'){ await demoP; const c=document.createElement('canvas'); c.width=DEMO_IMG.width; c.height=DEMO_IMG.height; c.getContext('2d').drawImage(DEMO_IMG,0,0); T.img=c; T.lm=clone(DEMO_LM); T.cmp={}; T.crops=makeCrops(c,T.lm).crops; render(); return; }
+  if(a==='tdoc'){ T.docJ=b.dataset.v; T.note=($('#tnote')||{}).value||T.note; renderTestResult(); return; }
+  if(a==='tsave'){ T.code=$('#tcode').value.trim()||('受試者'+((ls(TESTS)||[]).length+1)); T.note=$('#tnote').value; const r=score(CFG,testAns()), tool=r.main?QN[r.main]:'不明顯', doc=T.docJ==='none'?'不明顯':QN[T.docJ], agree=tool===doc;
+    const rec={code:T.code, when:new Date().toLocaleString('zh-TW',{hour12:false}), tool, doc, agree, note:T.note, input:clone(testAns()), scores:QUADS.map(k=>Math.round(r.qs[k]*100))};
+    const L=ls(TESTS)||[]; L.push(rec); ls(TESTS,L); const ok=await api({type:'doctor_test', by:T.by||'（未填）', ver:CFG.version, test:{code:rec.code, tool, doc, agree, scores:rec.scores, input:{a:T.a, mv:T.mv, cmp:T.cmp}, note:T.note}});
+    alert2(ok?'已記錄並送出':'已記錄在這台電腦（目前送不出去）'); T.docJ=null; T.note=''; T.a={}; T.mv={}; T.cmp={}; T.img=null; T.code=''; render(); return; }
+  if(a==='rescore'){ const L=(ls(TESTS)||[]).map(t=>{ const r=score(CFG,t.input), tool=r.main?QN[r.main]:'不明顯'; return {...t, re:{tool, agree:tool===t.doc}}; }); ls(TESTS,L); const n=L.filter(t=>t.re.agree).length; render(); alert2(`用目前設定重算：一致 ${n} / ${L.length}（${L.length?Math.round(n/L.length*100):0}%）`); return; }
+  if(a==='cleartests'){ if(b.dataset.sure){ ls(TESTS,null); render(); } else { b.dataset.sure='1'; b.textContent='再按一次確認清空'; } return; }
+  if(a==='preview'){ ls(PREVIEW_KEY,CFG); Tele.ev('preview'); window.open('index.html?preview=1','_blank'); return; }
+  if(a==='download'){ const blob=new Blob([JSON.stringify(CFG,null,2)],{type:'application/json'}), u=URL.createObjectURL(blob), l=document.createElement('a'); l.href=u; l.download='空間篇設定_'+new Date().toISOString().slice(0,10)+'.json'; l.click(); return; }
+  if(a==='reset'){ if(b.dataset.sure){ CFG=clone(D); save(); render(); } else { b.dataset.sure='1'; b.textContent='再按一次確認還原'; } return; }
+  if(a==='send'){ T.by=$('#by').value.trim(); if(!T.by){ alert2('請先填送出人'); return; } ls('sk_doc_name',T.by); const changes=diffCfg(D,CFG), msg=$('#msg').value.trim();
+    const ok=await api({type:'config', by:T.by, ver:CFG.version, count:changes.length, summary:(msg?'給 Benson 的話：'+msg+'\n\n':'')+changes.join('\n'), config:CFG}); Tele.ev('config_send',{k:String(changes.length)});
+    alert2(ok?'已送出，謝謝醫師！Benson 會收到你的修改。':'目前送不出去，請按「下載設定檔」用 LINE 傳給 Benson'); return; }
+});
+function alert2(t){ let el=$('#toast'); if(!el){ el=document.createElement('div'); el.id='toast'; el.className='toast'; document.body.appendChild(el); } el.textContent=t; el.hidden=false; clearTimeout(window._tt); window._tt=setTimeout(()=>el.hidden=true,3200); }
+function afterRender(){ if(T.tab==='test'){ if(T.img) drawPointsOn($('#cv'), T.img, T.lm, ()=>{ T.crops=makeCrops(T.img,T.lm).crops; render(); }); renderTestResult(); } }
+render();
+</script>
+</body>
+</html>

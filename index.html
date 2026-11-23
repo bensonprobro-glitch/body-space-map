@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>時空身體地圖・空間篇｜試用版</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500&family=Noto+Serif+TC:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="style.css">
+<style>
+.role{display:flex;gap:6px;flex-wrap:wrap}
+.role .opt{padding:6px 12px;font-size:14px}
+.pv{background:#7a5638;color:#fff;font-family:var(--fu);font-size:13px;text-align:center;padding:6px;border-radius:6px}
+.noimg{height:min(30vh,240px);display:flex;align-items:center;justify-content:center;background:var(--soft);border-radius:6px;color:var(--muted);font-family:var(--fu);font-size:14px;text-align:center;padding:16px}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+<div id="fx"></div>
+<button class="fab" id="fab" data-act="report">回報</button>
+<script src="config.js"></script>
+<script src="engine.js"></script>
+<script>
+const {cfg:CFG, preview:PREVIEW} = loadCfg();
+const QS = CFG.sources.questions.filter(q=>q.enabled), MOVES = CFG.sources.moves.filter(m=>m.enabled), CMPS = CFG.sources.compares.filter(c=>c.enabled), EX = CFG.explain;
+const PRAISE = ['很好！','答得好！','你很認真喔','觀察得真仔細','做得很棒','就是這樣！','好棒，繼續加油'];
+const S = {doc:false, snd:true, i:0, t0:null, a:{}, mv:{}, ph:{mode:null,img:null,lm:null,ai:null}, crops:null, regions:null, cmp:{}, res:null, slide:0, rp:0, saved:false, fit:null, docJ:null};
+const FLOW = ['cover','brief', ...QS.map(q=>q.id), 'rw1', ...MOVES.map(m=>m.id), 'rw2', 'ph1','ph2','ph3','points','look', ...CMPS.map(c=>c.id), 'rw3', 'inter','scan','result'];
+const STAGES = ['問一問','動一動','比一比','看結果'];
+const STAGE_OF = n => n==='cover'||n==='brief'?0 : n[0]==='Q'||n==='rw1'?1 : n[0]==='M'||n==='rw2'?2 : ['ph1','ph2','ph3','points','look','rw3'].includes(n)||n[0]==='P'?3 : 4;
+const idc = id => S.doc ? `<span class="idchip">${id}</span>` : '';
+const RM = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+const F = d => `class="fade" style="animation-delay:${d}s"`;
+Tele.init(CFG.version+(PREVIEW?'-preview':''));
+
+// ---------- 聲音 ----------
+const AU={ctx:null,on:false};
+function auInit(){ if(AU.ctx) return; const AC=window.AudioContext||window.webkitAudioContext; if(!AC) return; const C=AU.ctx=new AC(); AU.master=C.createGain(); AU.master.gain.value=0; AU.master.connect(C.destination);
+  const len=C.sampleRate*3.8, buf=C.createBuffer(2,len,C.sampleRate); for(let ch=0;ch<2;ch++){ const d=buf.getChannelData(ch); for(let i=0;i<len;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/len,2.8); }
+  AU.rev=C.createConvolver(); AU.rev.buffer=buf; const rg=C.createGain(); rg.gain.value=.6; AU.rev.connect(rg); rg.connect(AU.master); AU.dry=C.createGain(); AU.dry.gain.value=.55; AU.dry.connect(AU.master); AU.sfx=C.createGain(); AU.sfx.gain.value=.45; AU.sfx.connect(C.destination); AU.sfx.connect(AU.rev); }
+function musicStart(){ auInit(); if(!AU.ctx) return; const C=AU.ctx; C.resume(); if(AU.on) return; AU.on=true; const lp=C.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=520; lp.connect(AU.dry); lp.connect(AU.rev);
+  AU.drone=[146.83,220,293.66].map((f,i)=>{ const o=C.createOscillator(); o.type=i===2?'triangle':'sine'; o.frequency.value=f; const g=C.createGain(); g.gain.value=i===2?.018:.05; const l=C.createOscillator(); l.frequency.value=.05+i*.03; const lg=C.createGain(); lg.gain.value=.025; l.connect(lg); lg.connect(g.gain); o.connect(g); g.connect(lp); o.start(); l.start(); return [o,l]; });
+  AU.master.gain.cancelScheduledValues(C.currentTime); AU.master.gain.setTargetAtTime(.55,C.currentTime,2); const scale=[293.66,329.63,369.99,440,493.88,587.33,659.25,739.99,880];
+  const pluck=()=>{ if(!AU.on) return; const t=C.currentTime+.05, f=scale[Math.floor(Math.random()*scale.length)]; const o=C.createOscillator(); o.type='triangle'; o.frequency.setValueAtTime(f*1.012,t); o.frequency.exponentialRampToValueAtTime(f,t+.3); const o2=C.createOscillator(); o2.type='sine'; o2.frequency.value=f*2; const g2=C.createGain(); g2.gain.value=.22; const g=C.createGain(); g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(.075,t+.012); g.gain.exponentialRampToValueAtTime(.0006,t+3.4); o.connect(g); o2.connect(g2); g2.connect(g); g.connect(AU.dry); g.connect(AU.rev); o.start(t); o2.start(t); o.stop(t+3.6); o2.stop(t+3.6); AU.timer=setTimeout(pluck,2000+Math.random()*3400); };
+  AU.timer=setTimeout(pluck,1500); }
+function musicStop(){ if(!AU.ctx||!AU.on) return; AU.on=false; clearTimeout(AU.timer); const C=AU.ctx; AU.master.gain.setTargetAtTime(0,C.currentTime,.5); const d=AU.drone; setTimeout(()=>d&&d.forEach(([o,l])=>{try{o.stop();l.stop();}catch(e){}}),2500); }
+function chime(big){ if(!S.snd) return; auInit(); if(!AU.ctx) return; const C=AU.ctx; C.resume(); (big?[587.33,739.99,880,1174.66]:[659.25,880]).forEach((f,i)=>{ const t=C.currentTime+i*(big?.13:.09); const o=C.createOscillator(); o.type='sine'; o.frequency.value=f; const g=C.createGain(); g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(.16,t+.01); g.gain.exponentialRampToValueAtTime(.001,t+1.5); o.connect(g); g.connect(AU.sfx); o.start(t); o.stop(t+1.6); }); }
+function tick(){ if(!S.snd||!AU.ctx) return; const C=AU.ctx,t=C.currentTime; const o=C.createOscillator(); o.type='sine'; o.frequency.value=1318.5; const g=C.createGain(); g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(.06,t+.005); g.gain.exponentialRampToValueAtTime(.001,t+.4); o.connect(g); g.connect(AU.sfx); o.start(t); o.stop(t+.45); }
+function petals(n=14){ if(RM()) return; const fx=$('#fx'), cols=['#b8936a','#d8bf98','#8f6a49','#e6d4b8','#a5814f']; for(let i=0;i<n;i++){ const p=document.createElement('i'); p.className='petal'; const a=Math.random()*Math.PI*2, d=90+Math.random()*130; p.style.setProperty('--x',Math.cos(a)*d+'px'); p.style.setProperty('--y',Math.sin(a)*d+'px'); p.style.setProperty('--r',(Math.random()*540-270)+'deg'); p.style.setProperty('--c',cols[i%cols.length]); fx.appendChild(p); setTimeout(()=>p.remove(),1200); } }
+let praising=false;
+function praise(cb,txt){ if(praising) return; praising=true; const t=txt||PRAISE[Math.floor(Math.random()*PRAISE.length)]; const el=document.createElement('div'); el.className='cele'; el.innerHTML=`<div class="cb"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="30"/><path d="M19 33l9 9 17-19"/></svg><p>${esc(t)}</p></div>`; document.body.appendChild(el); petals(12); chime(false); setTimeout(()=>{ el.remove(); praising=false; cb&&cb(); }, RM()?500:950); }
+
+// ---------- 連續圖 ----------
+let FLIPS=[];
+const flipTag = frames => frames&&frames.length ? `<div class="flip" data-flip>${frames.map(([src],i)=>`<img src="${src}" alt="" class="${i===0?'on':''}">`).join('')}<div class="fd">${frames.map((_,i)=>`<i class="${i===0?'on':''}"></i>`).join('')}</div><div class="cap" data-caps='${JSON.stringify(frames.map(f=>f[1])).replace(/'/g,'&#39;')}'>${esc(frames[0][1])}</div></div>` : `<div class="noimg">示範圖之後補上</div>`;
+function startFlips(){ FLIPS.forEach(clearInterval); FLIPS=[]; document.querySelectorAll('[data-flip]').forEach(el=>{ const imgs=[...el.querySelectorAll('img')], dots=[...el.querySelectorAll('.fd i')], cap=el.querySelector('.cap'), caps=JSON.parse(cap.dataset.caps); let k=0; if(RM()||imgs.length<2) return; FLIPS.push(setInterval(()=>{ k=(k+1)%imgs.length; imgs.forEach((im,i)=>im.classList.toggle('on',i===k)); dots.forEach((d,i)=>d.classList.toggle('on',i===k)); cap.textContent=caps[k]; },2200)); }); }
+async function fillQP(){ const els=document.querySelectorAll('img[data-qp]'); if(!els.length) return; await demoP; els.forEach(el=>{ const d=JSON.parse(el.dataset.qp), u=d.src==='user'&&S.ph.img&&S.ph.lm; el.src=quadPhoto(u?S.ph.img:DEMO_IMG, u?S.ph.lm:DEMO_LM, d.qs, d.main, d.w||520, d.labels!==false); }); }
+const qpTag=(qs,main,opt={},cls='')=>`<img class="${cls}" data-qp='${JSON.stringify({qs,main,...opt}).replace(/'/g,'&#39;')}' alt="身體四個區塊的辛苦程度">`;
+async function fillPtStrip(){ const els=document.querySelectorAll('img[data-pt]'); if(!els.length) return; await demoP; const Hb=DEMO_LM.heL[1]-DEMO_LM.earL[1];
+  els.forEach(el=>{ const [x,y]=DEMO_LM[el.dataset.pt+'L'], sz=Hb*.13, c=document.createElement('canvas'); c.width=c.height=232; const g=c.getContext('2d'); g.drawImage(DEMO_IMG,x-sz/2,y-sz/2,sz,sz,0,0,232,232); g.beginPath(); g.arc(116,116,13,0,7); g.fillStyle='#7a5638'; g.fill(); g.lineWidth=3; g.strokeStyle='#fff'; g.stroke(); g.beginPath(); g.arc(116,116,30,0,7); g.lineWidth=2; g.strokeStyle='rgba(255,255,255,.8)'; g.stroke(); el.src=c.toDataURL('image/jpeg',.85); }); }
+async function fillKnee(){ for(const el of document.querySelectorAll('img[data-kx]')) el.src=await kneeExample(el.dataset.kx); }
+
+// ---------- 畫面 ----------
+function stageBar(){ const n=FLOW[S.i], cur=STAGE_OF(n); if(!cur||n==='scan'||n==='result') return ''; const inStage=FLOW.filter(x=>STAGE_OF(x)===cur), pos=inStage.indexOf(n); return `<div class="stages">${STAGES.map((s,k)=>{ const st=(k+1)<cur?'done':(k+1)===cur?'now':''; return `<div class="stg ${st}" style="--p:${Math.round(((pos+1)/inStage.length)*100)}%"><i></i>${s}</div>`; }).join('')}</div>`; }
+function note(t){ return S.doc&&t?`<div class="note"><span class="h">醫師檢視｜設計說明</span>${esc(t)}</div>`:''; }
+const NOBACK=['cover','scan','result','rw1','rw2','rw3'];
+const ansOf = () => ({a:S.a, mv:S.mv, cmp:S.crops?S.cmp:null, meas:S.crops&&S.ph.lm?measure(S.ph.lm):null});
+function render(){
+  const n=FLOW[S.i];
+  if(n==='inter'||n==='scan'||(n==='result'&&!S.res)) S.res=score(CFG, ansOf());
+  if(n==='result') saveEntry();
+  const V={cover:vCover, brief:vBrief, rw1:()=>vReward(1), rw2:()=>vReward(2), rw3:()=>vReward(3), ph1:vPh1, ph2:vPh2, ph3:vPh3, points:vPoints, look:vLook, inter:vInter, scan:vScan, result:vResult};
+  const body = V[n]?V[n]() : n[0]==='Q'?vQ(n) : n[0]==='M'?vMove(n) : vCmp(n);
+  const on=S.snd&&AU.on, left=NOBACK.includes(n)?'<span>時空身體地圖・空間篇</span>':`<button class="bk" data-act="back">‹ 上一步</button>`;
+  $('#app').innerHTML = `${PREVIEW?'<div class="pv">醫師預覽模式：正在使用你在後台編輯的設定</div>':''}<div class="top">${left}<div class="r"><button data-act="snd" aria-pressed="${on}">${on?'音樂 開':'音樂 關'}</button><button data-act="doc" aria-pressed="${S.doc}">醫師檢視</button></div></div>${stageBar()}${body}${n==='cover'?'<p class="foot">衛教內容僅供參考，個人狀況請由醫師判斷</p>':''}`;
+  $('#fab').classList.toggle('up', n==='result');
+  Tele.screen(n==='inter'?'inter'+(S.slide+1):n==='result'?'report'+(S.rp+1):n);
+  after(n); window.scrollTo(0,0);
+}
+const go=d=>{ S.i=Math.max(0,Math.min(FLOW.length-1,S.i+d)); render(); };
+const next=()=>go(1), back=()=>go(-1);
+
+function vCover(){ const H=hist(), role=Tele.role;
+  return `<div class="card"><div class="vlabel">空間篇</div>
+    <span class="kicker" ${F(0)}>中醫師的身體自我修復學</span>
+    <h1 class="mark" ${F(.1)} style="padding-right:40px">時空身體地圖</h1>
+    <img class="photo-r" style="max-height:22vh;object-fit:cover" src="img/cover_hero.jpg" alt="一位女性在窗邊安靜感受自己的身體" ${F(.2)}>
+    <div class="quote" ${F(.3)}>痛的地方先放著，去找「動不了」的地方。<small>黃獻銘醫師</small></div>
+    <p ${F(.4)}>這門課用兩把尺看身體：<b>時間</b>看你現在偏向哪一季；<b>空間</b>看你身體哪一邊比較辛苦。這一篇看空間，大約 5 分鐘。</p>
+    <div ${F(.45)}><p class="muted sm" style="margin-bottom:4px">試用身分（幫助我們分析）：</p><div class="role">${['醫師','製課人員','一般試用'].map(r=>`<button class="opt" data-act="role" data-v="${r}" aria-pressed="${role===r}">${r}</button>`).join('')}</div></div>
+    ${H.length?`<div class="clue" ${F(.5)}><b>歡迎回來！你已經記錄 ${H.length} 次了</b><div class="histrow">${H.slice(-4).map(e=>`<div class="hm">${qpTag(qsOf(e),e.m,{w:150,labels:false})}<span>${esc(e.d)}</span></div>`).join('')}</div></div>`:''}
+    <button class="btn" data-act="start" ${F(.55)}>${H.length?'開始今天的紀錄':'開始'}</button>
+    <details><summary class="muted ui">我有之前的「身體紀錄碼」</summary><textarea id="codein" placeholder="貼上 SK1- 開頭的紀錄碼" style="margin-top:8px"></textarea><button class="btn ghost small" data-act="importcode" style="margin-top:8px">讀取紀錄</button></details>
+    ${S.doc?`<button class="btn ghost small" data-act="demohist">載入示範紀錄（模擬前兩次）</button>`:''}
+  </div>${note('定位：增加學習體驗，不做精準醫療評估〔11/9 例會〕。醫師要調整題目、判斷邏輯、結果解釋，請到「醫師後台」（doctor.html）。')}`; }
+function vBrief(){ const it=[['img/step_ask.jpg','問一問',QS.length+' 個簡單的問題'],['img/m1b.jpg','動一動',MOVES.length+' 個小動作'],['img/photo_setup.jpg','比一比','一張背面照'],['img/warm_thanks.jpg','看結果','你的身體地圖']];
+  return `<div class="card"><h2 class="mark">我們會一起做四件事</h2><div class="pgrid">${it.map(([src,t,d],i)=>`<div class="pcard" style="cursor:default" ${F(.05+i*.1)}><img src="${src}" alt=""><span><b>${i+1}. ${t}</b>　<span class="muted sm">${d}</span></span></div>`).join('')}</div><p class="muted">沒有對錯，照你的感覺選就好。建議戴上耳機。</p><button class="btn" data-act="next">好，開始</button></div>`; }
+function vQ(id){
+  const q=QS.find(x=>x.id===id), k=QS.indexOf(q)+1, v=S.a[q.key]; let ui='';
+  if(q.type==='bodymap'){ const sel=v||[];
+    ui=`<div class="photomap"><img src="img/demo_back.jpg" alt="從背後看的人">${HOTSPOTS.map(([n,lx,ly,rx,ry])=>[['L',lx,ly],['R',rx,ry]].map(([s,x,y])=>{ const z=s+'-'+n, on=sel.includes(z); return `<button class="hs ${on?'on':''}" style="left:${x}%;top:${y}%" data-act="zone" data-z="${z}" aria-label="${s==='L'?'左':'右'}${n}" aria-pressed="${on}">${on?`<span>${s==='L'?'左':'右'}${n}</span>`:''}</button>`; }).join('')).join('')}</div>
+      <div class="row"><button class="btn ghost" data-act="nopain">都沒有</button><button class="btn" data-act="qnext" ${sel.length?'':'disabled'}>好了${sel.length?`（${sel.length}）`:''}</button></div>`;
+  } else if(q.type==='quadmap'){ const Z={LU:['0','0','左手・左肩'],RU:['50%','0','右手・右肩'],LD:['0','50%','左腳・左膝'],RD:['50%','50%','右腳・右膝']};
+    ui=`<div class="photomap"><img src="img/demo_back.jpg" alt="從背後看的人">${Object.entries(Z).map(([qq,[l,t,lab]])=>`<button class="qz ${v===qq?'on':''}" style="left:${l};top:${t};width:50%;height:50%" data-act="ansq" data-q="${q.key}" data-v="${qq}">${lab}</button>`).join('')}</div><button class="btn ghost" data-act="ans" data-q="${q.key}" data-v="none">沒有</button>`;
+  } else if(q.type==='pics'){ ui=`<div class="pgrid">${q.o.map((o,i)=>`<button class="pcard" data-act="ans" data-q="${q.key}" data-v="${esc(o)}" aria-pressed="${v===o}">${q.pics&&q.pics[i]?`<img src="${q.pics[i]}" alt="">`:''}<span>${esc(o)}</span></button>`).join('')}</div>`;
+  } else { ui=`<div class="opts">${(q.o||[]).map(o=>`<button class="opt" data-act="ans" data-q="${q.key}" data-v="${esc(o)}" aria-pressed="${v===o}">${esc(o)}</button>`).join('')}</div>`; }
+  return `<div class="card"><span class="kicker">問一問　${k} / ${QS.length}</span><h2 class="mark">${esc(q.t)}${idc(q.id)}</h2>${q.sub?`<p class="muted">${esc(q.sub)}</p>`:''}${ui}</div>${note(q.note)}`; }
+function vReward(n){ const R={1:{t:'問題都回答完了',s:'第 1 段完成',quote:'痛的地方很常是在替別人扛的地方，它是受害者不是兇手。',say:'你說會痛的地方，我們先記下來，不急著下結論。接下來動一動，去找真正「動不了」的地方。',btn:'開始動一動'},2:{t:'動作都做完了',s:'第 2 段完成',quote:'分辨「卡住」和「在用力」。',say:'卡住，是那裡太緊、轉不開；很用力，是身體正在幫忙撐。你已經開始練習分辨了，很不簡單。',btn:'下一步：拍一張背面照'},3:{t:'左右都比完了',s:'第 3 段完成',quote:'痛的地方先放著，去找「動不了」的地方。',say:'你剛剛做的，就是醫師在診間每天在做的事：仔細看左右哪裡不一樣。',btn:'下一步'}}[n], C=2*Math.PI*40;
+  return `<div class="card bigcele"><svg class="ring" viewBox="0 0 96 96" ${F(0)}><circle class="bg" cx="48" cy="48" r="40"/><circle class="fg" id="ringfg" cx="48" cy="48" r="40" stroke-dasharray="${C}" stroke-dashoffset="${C*(1-(n-1)/3)}" transform="rotate(-90 48 48)"/><text x="48" y="55" text-anchor="middle" style="font-size:20px;fill:var(--brown);font-family:var(--fu)">${n}/3</text></svg>
+    <span class="kicker" ${F(.15)}>${R.s}</span><h2 ${F(.25)}>${R.t}</h2><p ${F(.35)}>${['你做得很好','你很認真','你好棒'][n-1]}，獲得一張訊號卡：</p>
+    <div class="clue" style="text-align:left" ${F(.5)}><div class="quote">${esc(R.quote)}<small>黃獻銘醫師</small></div><p class="muted">${esc(R.say)}</p></div><button class="btn" data-act="next" ${F(.65)}>${R.btn}</button></div>`; }
+function vMove(id){ const m=MOVES.find(x=>x.id===id), k=MOVES.indexOf(m)+1, v=S.mv[m.id]||{}, sides=['左邊','右邊','兩邊差不多','兩邊都很難'], feel=Object.keys(CFG.logic.feelWeight), lr=v.side==='左邊'||v.side==='右邊', step2=lr&&!v.feel;
+  return `<div class="card"><span class="kicker">動一動　${k} / ${MOVES.length}</span><h2 class="mark">${esc(m.name)}</h2>
+    ${step2&&m.compare?`<div class="ex2">${m.compare.map(([src,cap],i)=>`<figure class="${i?'bad':''}"><img src="${src}" alt=""><figcaption>${cap}</figcaption></figure>`).join('')}</div>`:flipTag(m.frames)}
+    ${m.timer&&!step2?`<div class="row" style="align-items:center"><div class="timer" id="tm" style="flex:none;width:60px">10</div><button class="btn ghost" data-act="timer">幫我數 10 秒</button></div>`:''}
+    ${!step2?`<h3>${esc(m.ask)}${idc(m.id)}</h3><div class="opts grid">${sides.map(o=>`<button class="opt c" data-act="mv" data-m="${m.id}" data-k="side" data-v="${o}" aria-pressed="${v.side===o}">${o}</button>`).join('')}</div>`
+      :`<h3>${esc(v.side)}的感覺，比較像哪一種？</h3><div class="opts">${feel.map(o=>`<button class="opt" data-act="mv" data-m="${m.id}" data-k="feel" data-v="${o}">${o}</button>`).join('')}</div><button class="btn ghost small" data-act="mvreset" data-m="${m.id}" style="align-self:center">重選左右</button>`}
+  </div>${note(m.note)}`; }
+function vPh1(){ return `<div class="card"><span class="kicker">比一比｜拍一張背面照</span><h2 class="mark">照片要拍成這樣</h2>
+  <div class="row" style="align-items:center"><img src="img/demo_back.jpg" alt="正確的背面照範例" style="flex:1;max-height:42vh;object-fit:contain;border-radius:6px;background:var(--soft)"><div style="flex:1;display:flex;flex-direction:column;gap:10px" class="ui"><span class="chip">✓ 頭到腳都拍到</span><span class="chip">✓ 背對手機</span><span class="chip">✓ 肩膀露出來</span><span class="chip">✓ 膝蓋後面露出來</span><span class="chip">✓ 光腳</span></div></div>
+  <p class="muted">穿運動內衣或背心、短褲，頭髮綁起來。</p><button class="btn" data-act="next">看怎麼拍</button></div>`; }
+function vPh2(){ const fr=[['img/g1.jpg','① 手機放在腰的高度，按下「錄影」或 10 秒倒數'],['img/g2.jpg','② 走到牆前，離手機大約兩步半'],['img/feetfist.jpg','③ 背對手機，兩腳打開「一個拳頭」寬'],['img/g4.jpg','④ 原地踏 5 步，自然停下來'],['img/photo_setup.jpg','⑤ 兩手放鬆垂下，不用挺胸，站好 5 秒']];
+  return `<div class="card"><span class="kicker">比一比｜怎麼拍</span><h2 class="mark">跟著做，5 個步驟</h2>${flipTag(fr)}<div class="koujue"><small>口訣</small>手機放腰高，退兩步半；<br>兩腳一拳寬，踏五步站好。</div><button class="btn" data-act="next">我知道了</button></div>`; }
+function vPh3(){ return `<div class="card"><span class="kicker">比一比｜選照片</span><h2 class="mark">沒有人幫你拍？先錄影就好</h2>
+  <img class="photo-r" src="img/g5.jpg" alt="從錄好的影片裡截一張圖" style="max-height:26vh;object-fit:cover"><p>用錄影把整個過程錄下來，再打開影片，停在<b>站好不動</b>的那一刻，<b>截一張圖</b>就可以了。</p>
+  <label class="btn" for="file">選一張我的背面照</label><input type="file" id="file" accept="image/*"><button class="btn ghost" data-act="demo">先用示範照片試試看</button>
+  <p class="muted sm">照片只在你的手機裡看，不會傳出去，也不會存起來。</p><div id="phmsg"></div><button class="btn ghost small" data-act="skipphoto" style="align-self:center">這次先不拍照，直接看結果</button></div>`; }
+function vPoints(){ return `<div class="card"><span class="kicker">比一比｜確認位置</span><h2 class="mark">電腦找好的點，位置對嗎？</h2><div class="stagewrap"><canvas id="cv"></canvas></div>
+  <p class="muted sm">正確位置長這樣（往右滑看全部）：</p><div class="ptstrip">${PT_DESC.map(([k,nm,d])=>`<figure><img data-pt="${k}" alt="${nm}的位置"><span><b>${nm}</b>　${d}</span></figure>`).join('')}</div>
+  <p class="muted sm">大概對就好。有點跑到身體外面，用手指拖回去。${S.ph.ai==='fail'?'這次電腦沒找到你的身體，請把點拖到對的地方。':''}</p><button class="btn" data-act="confirmPts">看起來都對，下一步</button></div>`; }
+function vLook(){ return `<div class="card"><span class="kicker">比一比｜先知道要看哪裡</span><h2 class="mark">等一下要比左右的 ${CMPS.length} 個地方</h2><div class="stagewrap"><canvas id="pv"></canvas></div>
+  <div class="opts grid">${CMPS.map((c,i)=>`<div class="opt" style="cursor:default;padding:8px 12px"><b style="color:var(--brown)">${i+1}</b>${esc(c.name)}${idc(c.id)}</div>`).join('')}</div><button class="btn" data-act="next">開始比</button></div>`; }
+function vCmp(id){ const c=CMPS.find(x=>x.id===id), k=CMPS.indexOf(c), v=S.cmp[c.key], cr=S.crops[c.key];
+  const img=c.type==='pair'?`<div class="pair"><figure><img src="${cr.L}" alt="你的左手">你的左手</figure><figure><img src="${cr.R}" alt="你的右手">你的右手</figure></div>`:`<img class="cmpimg" src="${cr.one}" alt="${esc(c.name)}放大圖">`;
+  return `<div class="card"><span class="kicker">比一比　${k+1} / ${CMPS.length}｜${esc(c.name)}</span><h2 class="mark">${esc(c.ask)}${idc(c.id)}</h2>${img}<p class="sm">${esc(c.how)}</p>
+    ${c.ex?`<div class="ex2">${c.ex.map(([src,cap],i)=>`<figure class="${i?'bad':''}">${src.startsWith('gen:')?`<img data-kx="${src.slice(4)}" alt="">`:`<img src="${src}" alt="">`}<figcaption>範例｜${esc(cap)}</figcaption></figure>`).join('')}</div>`:''}
+    <div class="row"><button class="opt c" data-act="cmp" data-k="${c.key}" data-v="L" aria-pressed="${v==='L'}">左邊</button><button class="opt c" data-act="cmp" data-k="${c.key}" data-v="R" aria-pressed="${v==='R'}">右邊</button><button class="opt c" data-act="cmp" data-k="${c.key}" data-v="=" aria-pressed="${v==='='}">差不多</button></div></div>${note(c.note)}`; }
+function vInter(){ const SL=[
+  `<img class="hero" src="img/warm_thanks.jpg" alt="" ${F(0)}><span class="kicker" ${F(.3)}>你完成了</span><p class="big" ${F(.5)}>謝謝你願意花這幾分鐘，好好看一次自己的身體。</p><p class="big" ${F(1.1)}>很多人一輩子都沒有這樣停下來觀察過。光是做完這一份，你就已經走在前面了。</p><p class="big" ${F(1.7)}>下面我們一起，一步一步看懂它。</p>`,
+  `<img class="hero" src="img/tight_loose.jpg" alt="" ${F(0)}><h2 class="mark" ${F(.3)}>我們說的「空間」是什麼？</h2><p class="big" ${F(.5)}>穿太緊的外套，手就舉不起來。</p><p ${F(1)}>身體也一樣：哪裡太緊、轉不開，就是那裡的<b>空間不夠</b>。我們說的「空間」，就是<b>身體能不能鬆鬆地動</b>。</p><div class="quote" ${F(1.5)}>很像在穿寬鬆外衣的情況下換汗衫⋯但如果穿緊身衣就很難這麼做。<small>黃獻銘醫師</small></div>`,
+  `<img class="hero" src="img/help_story.jpg" alt="" ${F(0)}><h2 class="mark" ${F(.3)}>痛的地方，不一定是源頭</h2><p class="big" ${F(.5)}>一個地方動不了，旁邊的地方就要多出力幫忙。</p><p ${F(1)}>比如左腳踝以前扭傷、轉不太開，走路時右腰就要多出力，久了反而是<b>右腰在痛</b>。真正要照顧的，是那個<b>動不了的地方</b>。</p>`], s=S.slide;
+  return `<div class="card inter">${SL[s]}<div class="dots">${SL.map((_,i)=>`<i class="${i===s?'on':''}"></i>`).join('')}</div><button class="btn" data-act="slide" ${F(s===0?2.1:1.8)}>${s<SL.length-1?'下一頁':'開始分析我的身體地圖'}</button></div>`; }
+function vScan(){ const steps=['讀取你回答的身體故事','比對動作的左右感覺','對照照片上的 '+CMPS.length+' 個地方','計算四個區塊的辛苦指數','畫出你的身體地圖'];
+  return `<div class="card scan"><span class="kicker">分析中</span><h2>正在整理你的身體地圖</h2><div class="scanimg"><img id="scanimg" alt=""><div class="grid"></div><i class="beam"></i></div><div class="pct mono" id="pct">0%</div><div class="bar"><i id="bar"></i></div><ul class="checks" id="checks">${steps.map(t=>`<li><i></i><span>${t}</span></li>`).join('')}</ul></div>`; }
+
+// ---------- 紀錄 ----------
+const HK='sk_hist_v1', hist=()=>ls(HK)||[], qsOf=e=>({LU:e.s[0]/100,RU:e.s[1]/100,LD:e.s[2]/100,RD:e.s[3]/100});
+function saveEntry(){ if(S.saved) return; S.saved=true; const r=S.res, H=hist(); S.entryId=Date.now();
+  const e={id:S.entryId, d:new Date().toLocaleDateString('zh-TW'), m:r.main, s:QUADS.map(k=>Math.round(r.qs[k]*100)), n:r.nAgree, p:(S.a.pain||[]).map(z=>(z[0]==='L'?'左':'右')+z.slice(2))}; H.push(e); ls(HK,H.slice(-60));
+  Tele.ev('complete',{k:r.main||'none', d:{s:e.s, secs:Math.round((Date.now()-S.t0)/1000), photo:S.ph.mode||'none'}});
+  api({type:'result', sid:Tele.sid, role:Tele.role, ver:Tele.ver, result:{main:r.main?QN[r.main]:'不明顯', s:e.s, n:r.nAgree, votes:r.votes.map(v=>v.label), answers:{...S.a, moves:S.mv, cmp:S.cmp, photo:S.ph.mode||'none'}}}); }
+function updEntry(p){ const H=hist(), e=H.find(x=>x.id===S.entryId); if(e){ Object.assign(e,p); ls(HK,H); } }
+function b64e(str){ const b=new TextEncoder().encode(str); let s=''; b.forEach(x=>s+=String.fromCharCode(x)); return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
+function b64d(s){ s=s.replace(/-/g,'+').replace(/_/g,'/'); while(s.length%4) s+='='; return new TextDecoder().decode(Uint8Array.from(atob(s),c=>c.charCodeAt(0))); }
+const makeCode=()=>'SK1-'+b64e(JSON.stringify(hist()));
+function importCode(txt){ const m=(txt||'').trim().match(/SK1-([A-Za-z0-9_-]+)/); if(!m) return -1; try{ const arr=JSON.parse(b64d(m[1])); if(!Array.isArray(arr)) return -1; const H=hist(), ids=new Set(H.map(e=>e.id)); let n=0; arr.forEach(e=>{ if(e&&e.id&&Array.isArray(e.s)&&e.s.length===4&&!ids.has(e.id)){ H.push(e); n++; } }); H.sort((a,b)=>a.id-b.id); ls(HK,H.slice(-60)); return n; }catch(e){ return -1; } }
+function demoHist(){ const H=hist(), now=Date.now(), wk=7*864e5; const add=[{id:now-8*wk,s:[14,82,100,8],m:'LD',n:3},{id:now-4*wk,s:[10,64,96,4],m:'LD',n:2}].map(e=>({...e,d:new Date(e.id).toLocaleDateString('zh-TW'),p:['右肩膀'],demo:true})); ls(HK,[...H.filter(e=>!e.demo),...add].sort((a,b)=>a.id-b.id)); }
+
+// ---------- 報告書 ----------
+const SIDE_TXT=s=>s==='L'?'左邊':s==='R'?'右邊':'';
+function chartSVG(H){ const W=520,Hh=150,pl=28,pr=64,pt=12,pb=26,n=H.length,X=i=>pl+(n===1?0:i*(W-pl-pr)/(n-1)),Y=v=>pt+(1-v/100)*(Hh-pt-pb), col={LU:'#b3a593',RU:'#c49a6a',LD:'#7a5638',RD:'#9c8d7c'};
+  let g=[0,50,100].map(v=>`<line x1="${pl}" x2="${W-pr}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${pl-6}" y="${Y(v)+4}" text-anchor="end" style="font-size:10px;fill:var(--muted);font-family:var(--fu)">${v}</text>`).join('');
+  QUADS.forEach((k,ki)=>{ const last=H[n-1].s[ki]; g+=`<polyline points="${H.map((e,i)=>`${X(i)},${Y(e.s[ki])}`).join(' ')}" fill="none" stroke="${col[k]}" stroke-width="${last>=50?3:1.6}"/>`+H.map((e,i)=>`<circle cx="${X(i)}" cy="${Y(e.s[ki])}" r="3" fill="${col[k]}"/>`).join('')+(last>=15?`<text x="${W-pr+8}" y="${Y(last)+4}" style="font-size:11px;fill:${col[k]};font-family:var(--fu)">${QN[k]} ${last}</text>`:''); });
+  g+=H.map((e,i)=>`<text x="${X(i)}" y="${Hh-6}" text-anchor="middle" style="font-size:10px;fill:var(--muted);font-family:var(--fu)">${esc(e.d)}</text>`).join(''); return `<svg viewBox="0 0 ${W} ${Hh}" style="width:100%;height:auto">${g}</svg>`; }
+function changeSentence(H){ if(H.length<2) return ''; const f=H[0], l=H[H.length-1], k=l.m||f.m||'LD', ki=QUADS.indexOf(k), a=f.s[ki], b=l.s[ki]; const drops=QUADS.map((q,i)=>[q,f.s[i]-l.s[i],f.s[i],l.s[i]]).filter(d=>d[0]!==k&&d[1]>=10).sort((x,y)=>y[1]-x[1]); const extra=drops.length?`另外，${QN[drops[0][0]]}從 ${drops[0][2]} 降到 ${drops[0][3]}，輕鬆了很多，你的努力看得到！`:'';
+  if(b<=a-10) return `跟第一次比，${QN[k]}從 ${a} 降到 ${b}，身體比較輕鬆了，真的很棒！${extra}`; if(b>=a+10) return `這陣子${QN[k]}比較辛苦（${a} → ${b}）。沒關係，多換姿勢、早點休息，下次再看看。${extra}`; return `跟第一次比，${QN[k]}差不多（${a} → ${b}），穩穩的也很好。${extra}`; }
+function unitById(id){ return EX.units.find(u=>u.id===id)||EX.units[0]; }
+function reportPages(){
+  const r=S.res, H=hist(), prevs=H.filter(e=>e.id!==S.entryId), hasPhoto=!!S.crops, Q=r.main?EX.quadrants[r.main]:null;
+  const dots=n=>[0,1,2].map(i=>`<i class="${i<n?'on':''}"></i>`).join('');
+  const say=r.main?`你身體的<em>「${QN[r.main]}」</em>──${esc(Q.area)}──${esc(Q.say)}`:esc(EX.none.say);
+  const mainUnit=unitById(r.main?Q.unit:EX.none.unit), order=EX.unitOrder.map(x=>x==='*'?mainUnit:unitById(x)).filter((u,i,a)=>a.indexOf(u)===i);
+  const stuck=MOVES.find(m=>{ const v=S.mv[m.id]; return v&&(v.side==='左邊'||v.side==='右邊'); })||MOVES[0];
+  const cell=k=>{ const v=r.qs[k], a=Math.min(1,v/.8); return `<div class="${k===r.main?'hi':''}" style="background:color-mix(in srgb, var(--q1) ${Math.round(a*85)}%, var(--q0))${a>.45?';color:var(--paper)':''}"><b>${QN[k]}</b><span>${Math.round(v*100)}</span></div>`; };
+  const P=[];
+  P.push(['一眼看懂',`<span class="kicker" ${F(0)}>一眼看懂</span><div ${F(.1)}>${qpTag(r.qs,r.main,{w:620,src:'user'},'mapimg')}<p class="muted sm ui" style="text-align:center;margin-top:4px">從背後看｜顏色越深越辛苦（0～100）</p></div>
+    <p class="say" ${F(.35)}>${say}</p>${r.main?`<div class="sure" ${F(.6)}>${dots(r.nAgree)}<span>${r.nAgree>=3?'三個提示都這樣說':'三個提示裡有兩個這樣說'}</span></div>`:''}<p class="muted sm" ${F(.75)}>${esc(EX.disclaimer)}往後翻，看為什麼、今天可以做什麼。</p>`]);
+  if(prevs.length) P.push(['這段時間的變化',`<span class="kicker">這段時間的變化</span><h2 class="mark">你已經記錄 ${H.length} 次了</h2><div class="histrow">${H.slice(-6).map(e=>`<div class="hm ${e.id===S.entryId?'now':''}">${qpTag(qsOf(e),e.m,{w:150,labels:false})}<span>${esc(e.d)}${e.id===S.entryId?'（今天）':''}${e.demo?'＊':''}</span></div>`).join('')}</div>${chartSVG(H.slice(-6))}<p>${changeSentence(H.slice(-6))}</p>${H.some(e=>e.demo)?'<p class="muted sm">＊示範紀錄</p>':''}`]);
+  P.push(['為什麼這樣說',`<span class="kicker">為什麼這樣說</span><h2 class="mark">你今天找到 ${r.votes.length} 個提示</h2><div class="row" style="align-items:flex-start"><div style="flex:1">${hasPhoto?'<img id="annot" alt="" style="width:100%;border-radius:6px;max-height:40vh;object-fit:contain;background:#2a2420">':qpTag(r.qs,r.main,{w:300,labels:false})}</div>
+    <div style="flex:1.1;display:flex;flex-direction:column;gap:8px"><div class="quad2">${QUADS.map(cell).join('')}</div><div class="ui sm" style="display:flex;flex-direction:column;gap:4px">${r.votes.map(v=>`<span>・${esc(v.label)}</span>`).join('')||'這次沒有明確的提示'}</div></div></div>
+    <p class="muted sm">至少 ${CFG.logic.minAgree} 種提示（回答、動作、照片）指向同一邊，才會說「這邊比較辛苦」。輕微不一樣很正常。</p>`]);
+  const finds=[];
+  if(hasPhoto) CMPS.forEach(c=>{ const res=r.cmpRes[c.key], cr=S.crops[c.key]; const said=res==='L'||res==='R'?`你看出是<b>${SIDE_TXT(res)}</b>比較明顯，看得很仔細！${esc(c.mean)}`:res==='='?'你覺得左右差不多，代表這裡目前還很輕鬆。':'這一題沒有作答。';
+    finds.push(`<div class="ccard">${c.type==='pair'?`<div class="ev"><img src="${cr.L}" alt=""><img src="${cr.R}" alt=""></div>`:`<img src="${cr.one}" alt="">`}<div class="tx"><span class="kicker">${esc(c.name)}${idc(c.id)}</span><p>${esc(c.see)}</p><p>${said}</p></div></div>`); });
+  MOVES.forEach(m=>{ const v=S.mv[m.id]||{}, s=v.side==='左邊'?'L':v.side==='右邊'?'R':null; finds.push(`<div class="ccard">${m.frames&&m.frames.length?`<img src="${m.frames[m.frames.length-1][0]}" alt="">`:''}<div class="tx"><span class="kicker">${esc(m.name)}${idc(m.id)}</span><p>${esc(m.teach)}</p><p>${s?`你覺得<b>${SIDE_TXT(s)}</b>${esc(EX.feelText[v.feel]||'比較吃力。')}`:'你覺得兩邊差不多，很好。'}</p></div></div>`); });
+  P.push(['醫師教你怎麼看',`<span class="kicker">醫師教你怎麼看</span><h2 class="mark">每個提示，都是身體在說話</h2><div class="carousel">${finds.join('')}</div><p class="swipehint">← 左右滑動，看 ${finds.length} 張卡片 →</p>`]);
+  if(r.main&&r.pHalf){ const same=r.pHalf.includes(r.main[1])&&(!r.pS||r.pS===r.main[0]);
+    P.push(['痛的地方 vs 辛苦的地方', same?`<span class="kicker">痛的地方 vs 辛苦的地方</span><h2 class="mark">你會痛的地方，和辛苦的地方在同一邊</h2><div style="display:flex;justify-content:center">${qpTag({[r.main]:.9},r.main,{w:300,labels:false,src:'user'},'mapimg small')}</div><p>不過，痛的地方不一定就是源頭。課程會教你分辨：哪裡是動不了的地方，哪裡是在幫忙出力的地方。</p>`
+      :`<span class="kicker">這一頁最值得記住</span><h2 class="mark">你常痛的是${esc((S.a.pain||[]).map(z=>(z[0]==='L'?'左':'右')+z.slice(2)).join('、'))}，最辛苦的卻是${QN[r.main]}</h2><div style="display:flex;justify-content:center">${qpTag({[r.main]:.9},r.main,{w:300,labels:false,src:'user'},'mapimg small')}</div><p>很多人以為哪裡痛就是哪裡壞了。但你的身體告訴我們：真正太緊、動不了的，可能是另一個地方；會痛的地方，是一直在幫忙的那一邊。</p><div class="quote">痛的地方很常是在替別人扛的地方，它是受害者不是兇手。<small>黃獻銘醫師</small></div>`]); }
+  P.push(['今天就可以做的事',`<span class="kicker">今天就可以做的事</span><h2 class="mark">從簡單的開始就好</h2><div class="carousel">
+    <div class="ccard"><img src="img/pose_move.jpg" alt=""><div class="tx"><b>1. 不要一直停在同一個姿勢</b><p>${esc(EX.fixedTodo[S.a.fixed]||'任何姿勢都不要維持太久，記得換。')}</p></div></div>
+    <div class="ccard"><img src="img/todo_switch.jpg" alt=""><div class="tx"><b>2. 讓辛苦的那一邊休息一下</b><p>${esc(r.main?Q.todo:EX.none.todo)}</p></div></div>
+    ${stuck?`<div class="ccard">${flipTag(stuck.frames)}<div class="tx"><b>3. 睡前做一次「${esc(stuck.name)}」</b><p>${esc(EX.nightMove)}</p></div></div>`:''}
+    </div><p class="swipehint">← 左右滑動 →</p>${S.a.scar&&S.a.scar!=='沒有'?`<p class="muted sm">你說${esc(S.a.scar)}有開過刀的疤，課程裡黃醫師會講到疤對身體的影響。</p>`:''}`]);
+  P.push(['想知道更多',`<span class="kicker">想知道更多方法、更深的解說</span><h2 class="mark">照這個順序看課程</h2><div class="units">${order.map((u,i)=>`<button class="unit ${u===mainUnit?'main':''}" data-act="unit" data-u="${u.id}"><span class="mono sm" style="color:var(--brown)">第 ${i+1} 步｜${esc(u.ch)}${u===mainUnit?'｜推薦給你':''}${idc(u.id)}</span><b>${esc(u.name)}</b><span class="muted sm">${esc(u.why)}</span><span class="go">去看這一章 →</span></button>`).join('')}</div>
+    <div class="tcard"><div><small>時間｜四季測驗</small><b>？</b><span class="muted sm">做完時間篇就會出現</span></div><div class="on"><small>空間｜這一篇</small><b>${r.main?QN[r.main]:'平均'}</b><span class="muted sm">你的時空身體卡</span></div></div>`]);
+  const lineText=`我做了《中醫師的身體自我修復學》的身體地圖：${r.main?'最辛苦的是「'+QN[r.main]+'」（'+Q.area+'）':'四個區塊目前都還平均'}。今天開始：${EX.fixedTodo[S.a.fixed]||'記得常常換姿勢'}`;
+  P.push(['存起來、傳給家人',`<span class="kicker">存起來、傳給家人</span><h2 class="mark">把今天的身體地圖帶走</h2><img id="shareimg" class="share-img" alt="今天的身體地圖報告圖"><p class="muted sm" style="text-align:center">手機：<b>長按圖片</b> → 儲存或分享到 LINE</p>
+    <div class="row"><button class="btn" data-act="shareimg" style="letter-spacing:.04em">分享圖片</button><a class="btn ghost" style="letter-spacing:.04em" data-act="line" href="https://line.me/R/share?text=${encodeURIComponent(lineText)}" target="_blank" rel="noopener">傳 LINE 給家人</a></div>
+    <details><summary class="muted ui sm">保存我的紀錄（換手機也不會不見）</summary><p class="muted sm" style="margin:6px 0">複製這組「身體紀錄碼」，貼到 LINE 傳給自己。下次開頭貼回來，所有紀錄都會回來。</p><div class="code">${esc(makeCode())}</div><button class="btn ghost small" data-act="copycode" style="margin-top:6px">複製紀錄碼</button></details>
+    <div class="clue"><b>這個結果像你嗎？</b><div class="row">${['很像','有一點像','不太像'].map(o=>`<button class="opt c" data-act="fit" data-v="${o}" aria-pressed="${S.fit===o}" style="padding:8px">${o}</button>`).join('')}</div></div>
+    ${S.doc?`<div class="note"><span class="h">醫師判斷（驗證用）</span><div class="row" style="margin-top:4px;flex-wrap:wrap">${[...QUADS,'none'].map(q=>`<button class="opt c" data-act="docj" data-v="${q}" aria-pressed="${S.docJ===q}" style="padding:6px">${q==='none'?'不明顯':QN[q]}</button>`).join('')}</div>${S.docJ?`<p>${(S.docJ==='none'?!r.main:S.docJ===r.main)?'一致 ✓':'不一致'}｜工具：${r.main?QN[r.main]:'不明顯'}／醫師：${S.docJ==='none'?'不明顯':QN[S.docJ]}</p>`:''}</div>`:''}
+    <p class="muted sm"><b>4 個禮拜後</b>再回來做一次，看看地圖有沒有變。手腳麻、沒力氣、半夜痛醒，請直接看醫生。</p><p class="foot">衛教內容僅供參考，個人狀況請由醫師判斷</p>
+    ${S.doc?`<div class="note"><span class="h">這次是怎麼判斷的</span><pre style="white-space:pre-wrap;font-size:12px;margin:4px 0">${esc(traceText(CFG,r))}</pre></div>`:''}`]);
+  return P; }
+function vResult(){ const P=reportPages(); S.rp=Math.min(S.rp,P.length-1); const [title,html]=P[S.rp];
+  return `<div class="card rp"><div class="rphead"><span>${new Date().toLocaleDateString('zh-TW')}｜第 ${hist().length} 次紀錄</span><span>${S.rp+1} / ${P.length}　${esc(title)}</span></div>${html}</div>
+  <div class="rpnav"><div class="in"><button class="btn ghost" data-act="rpprev" ${S.rp===0?'disabled':''}>‹ 上一頁</button><div class="dots">${P.map((_,i)=>`<i class="${i===S.rp?'on':''}"></i>`).join('')}</div>${S.rp<P.length-1?`<button class="btn" data-act="rpnext">下一頁 ›</button>`:`<button class="btn" data-act="restart">再做一次</button>`}</div></div>`; }
+async function makeShareImage(){ await demoP; const r=S.res, u=S.ph.img&&S.ph.lm, W=1080, H=1700, c=document.createElement('canvas'); c.width=W; c.height=H; const g=c.getContext('2d');
+  g.fillStyle='#ece6dd'; g.fillRect(0,0,W,H); g.fillStyle='#7a5638'; g.beginPath(); g.arc(80,98,13,0,7); g.fill(); g.fillRect(79,111,2,110); g.font='600 54px "Noto Serif TC",serif'; g.fillStyle='#2b2724'; g.fillText('我的身體地圖',118,116);
+  g.font='28px "Noto Sans TC",sans-serif'; g.fillStyle='#7c7064'; g.fillText('中醫師的身體自我修復學｜空間篇　'+new Date().toLocaleDateString('zh-TW'),118,168);
+  const qp=await imgFromSrc(quadPhoto(u?S.ph.img:DEMO_IMG,u?S.ph.lm:DEMO_LM,r.qs,r.main,560,true)), ph=Math.min(900,qp.height*560/qp.width); g.drawImage(qp,80,240,560,ph);
+  const wrap=(t,x,y,w,lh)=>{ let line=''; for(const ch of t){ if(g.measureText(line+ch).width>w){ g.fillText(line,x,y); y+=lh; line=ch; } else line+=ch; } g.fillText(line,x,y); return y+lh; };
+  g.fillStyle='#2b2724'; g.font='600 40px "Noto Serif TC",serif'; let y=wrap(r.main?'最辛苦的是「'+QN[r.main]+'」':'四個區塊都還平均',680,300,340,56); g.font='28px "Noto Serif TC",serif'; g.fillStyle='#4a423b'; if(r.main) y=wrap(EX.quadrants[r.main].area+'，'+EX.quadrants[r.main].say,680,y+10,340,46);
+  QUADS.forEach((k,i)=>{ const x=680+(i%2)*170, yy=y+30+Math.floor(i/2)*120, v=r.qs[k]; g.fillStyle=k===r.main?'#7a5638':'rgba(122,86,56,'+(0.12+Math.min(1,v/.8)*.55)+')'; g.fillRect(x,yy,158,108); g.fillStyle=(k===r.main||v>.45)?'#fff':'#2b2724'; g.font='24px "Noto Sans TC",sans-serif'; g.fillText(QN[k],x+14,yy+34); g.font='44px "Noto Sans TC",sans-serif'; g.fillText(String(Math.round(v*100)),x+14,yy+88); });
+  let ty=240+ph+70; g.fillStyle='#7a5638'; g.font='600 36px "Noto Serif TC",serif'; g.fillText('今天可以先做的事',80,ty); ty+=56; g.font='30px "Noto Serif TC",serif'; g.fillStyle='#2b2724';
+  [EX.fixedTodo[S.a.fixed]||'不要一直停在同一個姿勢。', r.main?EX.quadrants[r.main].todo:EX.none.todo, '睡前慢慢做一次今天卡住的那個動作。'].forEach((t,i)=>{ ty=wrap((i+1)+'. '+t,80,ty,920,46)+8; });
+  g.fillStyle='#a5814f'; g.font='26px "Noto Serif TC",serif'; g.textAlign='center'; g.fillText('衛教內容僅供參考，個人狀況請由醫師判斷',W/2,H-60); g.textAlign='left'; S.shareURL=c.toDataURL('image/jpeg',.9); const el=$('#shareimg'); if(el) el.src=S.shareURL; }
+function annotate(){ const el=$('#annot'); if(!el||!S.ph.img) return; const {img,lm}=S.ph, r=S.res, [x0,y0,x1,y1]=bodyBox(lm,img.width,img.height), W=560, sc=W/(x1-x0), H=Math.round((y1-y0)*sc), c=document.createElement('canvas'); c.width=W; c.height=H; const g=c.getContext('2d');
+  g.drawImage(img,x0,y0,x1-x0,y1-y0,0,0,W,H); const P=p=>[(p[0]-x0)*sc,(p[1]-y0)*sc]; g.fillStyle='rgba(30,22,16,.3)'; g.fillRect(0,0,W,H); const midX=(P(lm.shL)[0]+P(lm.shR)[0]+P(lm.hipL)[0]+P(lm.hipR)[0])/4, hipY=(P(lm.hipL)[1]+P(lm.hipR)[1])/2;
+  if(r.main){ const L=r.main[0]==='L', U=r.main[1]==='U'; g.fillStyle='rgba(165,129,79,.3)'; g.fillRect(L?0:midX,U?0:hipY,L?midX:W-midX,U?hipY:H-hipY); }
+  g.strokeStyle='rgba(255,255,255,.85)'; g.lineWidth=2; [['shL','shR'],['hipL','hipR'],['shL','wrL'],['shR','wrR'],['hipL','anL'],['hipR','anR']].forEach(([a,b])=>{ const A=P(lm[a]),B=P(lm[b]); g.beginPath(); g.moveTo(A[0],A[1]); g.lineTo(B[0],B[1]); g.stroke(); });
+  PT_KEYS.forEach(k=>{ const [x,y]=P(lm[k]); g.beginPath(); g.arc(x,y,4,0,7); g.fillStyle='#fff'; g.fill(); });
+  CMPS.forEach(cc=>{ const res=r.cmpRes[cc.key]; S.regions[cc.key].forEach(([x,y,sz],j)=>{ const on=res===(j===0?'L':'R'), [px,py]=P([x,y]); g.beginPath(); g.arc(px,py,sz*.42*sc,0,7); g.lineWidth=on?3:1.2; g.strokeStyle=on?'#e0b57a':'rgba(255,255,255,.5)'; if(!on) g.setLineDash([4,4]); g.stroke(); g.setLineDash([]); }); }); el.src=c.toDataURL('image/jpeg',.88); }
+
+// ---------- 回報（直接送到 Benson 信箱） ----------
+const RK='sk_reports_v1';
+function screenCtx(){ const n=FLOW[S.i], item=QS.find(x=>x.id===n)||MOVES.find(x=>x.id===n)||CMPS.find(x=>x.id===n); const stage=n[0]==='Q'?'問答':n[0]==='M'?'動作':n[0]==='P'?'照片對照':n==='result'?'結果報告第 '+(S.rp+1)+' 頁':n==='inter'?'完成過場':['ph1','ph2','ph3','points','look'].includes(n)?'照片':'其他'; return {n, stage, id:item?item.id:n, text:item?(item.t||item.ask||''):''}; }
+function openReport(){ const ctx=screenCtx(), types=['看不懂','結果不準','畫面怪怪的','我有建議'];
+  const sh=document.createElement('div'); sh.className='sheet'; sh.id='sheet';
+  sh.innerHTML=`<div class="in" role="dialog" aria-label="回報"><div class="row" style="align-items:center"><h3 style="flex:3">回報給我們</h3><button class="btn ghost small" data-act="closerep" style="flex:none">關閉</button></div>
+    <p class="muted sm">你現在在：${esc(ctx.stage)}（${esc(ctx.id)}）</p><div class="chips" id="rtypes">${types.map((t,i)=>`<button class="opt" data-act="rtype" data-v="${t}" aria-pressed="${i===0}" style="padding:5px 11px;font-size:14px">${t}</button>`).join('')}</div>
+    <label class="ui sm muted" style="display:flex;flex-direction:column;gap:4px">想說的話<textarea id="r_msg" placeholder="例如：這題我看不懂「手背」是哪裡"></textarea></label>
+    <label class="ui sm muted" style="display:flex;flex-direction:column;gap:4px">你的名字（選填）<textarea id="r_name" style="min-height:40px"></textarea></label>
+    <button class="btn" data-act="sendrep">送出回報</button><p class="muted sm">會直接送給 PressPlay 的製作團隊。醫師要改題目或判斷方式，請用「醫師後台」。</p></div>`;
+  document.body.appendChild(sh); S.rtype=types[0]; }
+
+// ---------- 事件 ----------
+document.addEventListener('click', async e=>{
+  const b=e.target.closest('[data-act]'); if(!b) return; const act=b.dataset.act;
+  if(act==='doc'){ S.doc=!S.doc; Tele.ev('doc',{k:String(S.doc)}); render(); return; }
+  if(act==='snd'){ if(S.snd&&AU.on){ S.snd=false; musicStop(); } else { S.snd=true; musicStart(); } Tele.ev('music',{k:String(S.snd)}); setTimeout(render,60); return; }
+  if(act==='role'){ Tele.setRole(b.dataset.v); render(); return; }
+  if(act==='start'){ S.t0=Date.now(); if(!Tele.role) Tele.setRole('一般試用'); Tele.ev('start'); if(S.snd) musicStart(); next(); return; }
+  if(act==='next') return next();
+  if(act==='back'){ Tele.ev('back_btn'); return back(); }
+  if(act==='restart'){ Tele.ev('restart'); Object.assign(S,{i:0,t0:null,a:{},mv:{},ph:{mode:null,img:null,lm:null,ai:null},crops:null,regions:null,cmp:{},res:null,slide:0,rp:0,saved:false,fit:null,docJ:null}); render(); return; }
+  if(act==='zone'){ const z=b.dataset.z, a=S.a.pain||[]; S.a.pain=a.includes(z)?a.filter(x=>x!==z):[...a,z]; tick(); render(); return; }
+  if(act==='nopain'){ S.a.pain=[]; Tele.ev('answer',{k:'pain',d:[]}); praise(next); return; }
+  if(act==='qnext'){ Tele.ev('answer',{k:'pain',d:S.a.pain}); praise(next); return; }
+  if(act==='ansq'||act==='ans'){ S.a[b.dataset.q]=b.dataset.v; Tele.ev('answer',{k:b.dataset.q,d:b.dataset.v}); render(); praise(next); return; }
+  if(act==='mv'){ const m=S.mv[b.dataset.m]||(S.mv[b.dataset.m]={}); m[b.dataset.k]=b.dataset.v; const lr=m.side==='左邊'||m.side==='右邊'; if(b.dataset.k==='side') delete m.feel; render(); if(!lr||m.feel){ Tele.ev('answer',{k:b.dataset.m,d:m}); praise(next); } else tick(); return; }
+  if(act==='mvreset'){ S.mv[b.dataset.m]={}; render(); return; }
+  if(act==='timer'){ let t=10; const el=$('#tm'); b.disabled=true; const iv=setInterval(()=>{ t--; if(el) el.textContent=t; if(t<=0){ clearInterval(iv); if(el) el.textContent='換腳'; chime(false); b.disabled=false; b.textContent='再數 10 秒'; } },1000); return; }
+  if(act==='demo'){ Tele.ev('photo',{k:'demo'}); await demoP; const c=document.createElement('canvas'); c.width=DEMO_IMG.width; c.height=DEMO_IMG.height; c.getContext('2d').drawImage(DEMO_IMG,0,0); S.ph={mode:'demo',img:c,lm:clone(DEMO_LM),ai:'demo'}; S.i=FLOW.indexOf('points'); render(); return; }
+  if(act==='skipphoto'){ Tele.ev('photo',{k:'skip'}); S.crops=null; S.i=FLOW.indexOf('rw3'); render(); return; }
+  if(act==='confirmPts'){ const m=makeCrops(S.ph.img,S.ph.lm); S.crops=m.crops; S.regions=m.regions; S.cmp={}; next(); return; }
+  if(act==='cmp'){ S.cmp[b.dataset.k]=b.dataset.v; Tele.ev('answer',{k:b.dataset.k,d:b.dataset.v}); render(); praise(next); return; }
+  if(act==='slide'){ if(S.slide<2){ S.slide++; render(); } else next(); return; }
+  if(act==='rpnext'){ S.rp++; render(); return; }
+  if(act==='rpprev'){ S.rp=Math.max(0,S.rp-1); render(); return; }
+  if(act==='unit'){ Tele.ev('unit',{k:b.dataset.u}); toast('正式版會直接帶你到這個單元'); return; }
+  if(act==='line'){ Tele.ev('share',{k:'line'}); return; }
+  if(act==='shareimg'){ Tele.ev('share',{k:'image'}); try{ if(!S.shareURL) await makeShareImage(); const blob=await (await fetch(S.shareURL)).blob(), file=new File([blob],'我的身體地圖.jpg',{type:'image/jpeg'}); if(navigator.canShare&&navigator.canShare({files:[file]})) await navigator.share({files:[file],title:'我的身體地圖'}); else throw 0; }catch(err){ toast('請長按上面的圖片，選「儲存」或「分享」'); } return; }
+  if(act==='copycode'){ Tele.ev('share',{k:'code'}); try{ await navigator.clipboard.writeText(makeCode()); toast('已複製紀錄碼，記得貼到 LINE 傳給自己'); }catch(e){ toast('請長按紀錄碼自己複製'); } return; }
+  if(act==='importcode'){ const n=importCode($('#codein').value); Tele.ev('import',{k:String(n)}); toast(n<0?'這組紀錄碼讀不出來，請確認有完整貼上':'讀到 '+n+' 筆新的紀錄'); if(n>=0) render(); return; }
+  if(act==='demohist'){ demoHist(); toast('已載入兩筆示範紀錄'); render(); return; }
+  if(act==='fit'){ S.fit=b.dataset.v; updEntry({fit:S.fit}); Tele.ev('fit',{k:S.fit,d:{main:S.res.main}}); praise(()=>render(),'謝謝你！'); return; }
+  if(act==='docj'){ S.docJ=b.dataset.v; updEntry({doc:S.docJ}); Tele.ev('docjudge',{k:S.docJ,d:{tool:S.res.main}}); render(); return; }
+  if(act==='report'){ Tele.ev('report_open'); openReport(); return; }
+  if(act==='closerep'){ const s=$('#sheet'); s&&s.remove(); return; }
+  if(act==='rtype'){ S.rtype=b.dataset.v; document.querySelectorAll('#rtypes .opt').forEach(x=>x.setAttribute('aria-pressed',String(x===b))); return; }
+  if(act==='sendrep'){ const ctx=screenCtx(), msg=$('#r_msg').value.trim(), name=$('#r_name').value.trim(); if(!msg){ toast('請先寫下想說的話'); return; }
+    const text=`類型：${S.rtype}\n畫面：${ctx.stage}（${ctx.id}）\n${ctx.text?'題目：'+ctx.text+'\n':''}回報人：${name||'（未填）'}｜身分：${Tele.role||'未選'}\n\n${msg}`;
+    const L=ls(RK)||[]; L.push(text); ls(RK,L.slice(-100)); const ok=await api({type:'report', sid:Tele.sid, role:Tele.role, ver:Tele.ver, kind:S.rtype, screen:ctx.stage, item:ctx.id, text});
+    Tele.ev('report_send',{k:S.rtype}); toast(ok?'已送出，謝謝你！':'目前送不出去，已先存在這支手機'); const s=$('#sheet'); setTimeout(()=>s&&s.remove(),500); return; }
+});
+document.addEventListener('change', async e=>{ if(e.target.id!=='file'||!e.target.files[0]) return; Tele.ev('photo',{k:'upload'}); $('#phmsg').innerHTML='<div class="spin"></div><p class="muted" style="text-align:center">電腦正在你的手機裡找身體的位置⋯大約 10～20 秒</p>';
+  const c=await fileToCanvas(e.target.files[0]), d=await detect(c); S.ph={mode:'upload', img:c, lm:d.lm, ai:d.ai}; Tele.ev('ai',{k:d.ai}); S.i=FLOW.indexOf('points'); render(); });
+function toast(t){ let el=$('#toast'); if(!el){ el=document.createElement('div'); el.id='toast'; el.className='toast'; document.body.appendChild(el); } el.textContent=t; el.hidden=false; clearTimeout(window._tt); window._tt=setTimeout(()=>el.hidden=true,2400); }
+function after(n){
+  fillQP(); startFlips(); fillKnee();
+  if(n==='points'){ drawPointsOn($('#cv'), S.ph.img, S.ph.lm, ()=>Tele.ev('drag')); fillPtStrip(); }
+  if(n==='look'){ const m=makeCrops(S.ph.img,S.ph.lm); S.regions=m.regions; const cv=$('#pv'), img=S.ph.img; cv.width=img.width; cv.height=img.height; const g=cv.getContext('2d'); g.drawImage(img,0,0);
+    CMPS.forEach((c,i)=>S.regions[c.key].forEach(([x,y,sz])=>{ g.beginPath(); g.arc(x,y,sz*.45,0,7); g.lineWidth=Math.max(3,img.width/200); g.strokeStyle='#7a5638'; g.stroke(); const r=Math.max(16,img.width/40), bx=x+sz*.45*.72, by=y-sz*.45*.72; g.beginPath(); g.arc(bx,by,r,0,7); g.fillStyle='#7a5638'; g.fill(); g.fillStyle='#fff'; g.font=`${Math.round(r*1.2)}px sans-serif`; g.textAlign='center'; g.textBaseline='middle'; g.fillText(String(i+1),bx,by); g.textAlign='left'; g.textBaseline='alphabetic'; })); }
+  if(n==='rw1'||n==='rw2'||n==='rw3'){ petals(22); chime(true); const k={rw1:1,rw2:2,rw3:3}[n], C=2*Math.PI*40; setTimeout(()=>{ const f=$('#ringfg'); if(f) f.style.strokeDashoffset=C*(1-k/3); },150); }
+  if(n==='inter'&&S.slide===0){ petals(26); chime(true); }
+  if(n==='scan') runScan();
+  if(n==='result'){ annotate(); if($('#shareimg')) makeShareImage(); if(S.rp===0){ petals(18); chime(true); } }
+}
+async function runScan(){ await demoP; const u=S.ph.img&&S.ph.lm, img=u?S.ph.img:DEMO_IMG, lm=u?S.ph.lm:DEMO_LM, [x0,y0,x1,y1]=bodyBox(lm,img.width,img.height), W=360, sc=W/(x1-x0), H=Math.round((y1-y0)*sc), c=document.createElement('canvas'); c.width=W; c.height=H; const g=c.getContext('2d');
+  g.drawImage(img,x0,y0,x1-x0,y1-y0,0,0,W,H); g.fillStyle='rgba(30,22,16,.35)'; g.fillRect(0,0,W,H); const P=p=>[(p[0]-x0)*sc,(p[1]-y0)*sc], el=$('#scanimg'); if(el) el.src=c.toDataURL('image/jpeg',.85);
+  const lis=[...document.querySelectorAll('#checks li')], pct=$('#pct'), bar=$('#bar'), total=lis.length, stepMs=RM()?250:950; let shown=0;
+  for(let i=0;i<total;i++){ if(FLOW[S.i]!=='scan') return; lis[i].classList.add('run'); const start=Math.round(i/total*100), end=Math.round((i+1)/total*100), t0=performance.now();
+    await new Promise(res=>{ const fr=now=>{ const k=Math.min(1,(now-t0)/stepMs); if(pct) pct.textContent=Math.round(start+(end-start)*k)+'%'; if(bar) bar.style.width=(start+(end-start)*k)+'%'; const want=Math.floor((i+k)/total*PT_KEYS.length); while(shown<want){ const [x,y]=P(lm[PT_KEYS[shown]]); g.beginPath(); g.arc(x,y,4,0,7); g.fillStyle='#f1d9b3'; g.fill(); g.beginPath(); g.arc(x,y,9,0,7); g.strokeStyle='rgba(241,217,179,.5)'; g.lineWidth=1; g.stroke(); shown++; if(el) el.src=c.toDataURL('image/jpeg',.85); } if(k<1) requestAnimationFrame(fr); else res(); }; requestAnimationFrame(fr); });
+    lis[i].classList.remove('run'); lis[i].classList.add('ok'); lis[i].querySelector('i').textContent='✓'; tick(); }
+  if(el) el.src=quadPhoto(img,lm,S.res.qs,S.res.main,W,false); await new Promise(r=>setTimeout(r,RM()?200:900)); if(FLOW[S.i]==='scan'){ S.rp=0; next(); } }
+render();
+</script>
+</body>
+</html>
