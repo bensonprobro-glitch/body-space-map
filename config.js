@@ -46,7 +46,7 @@ window.DEFAULT_CONFIG = {
       {id:'P2', enabled:true, key:'U4', half:'U', w:1, name:'手', type:'pair', ask:'哪隻手露出比較多手背？', how:'手背＝有指關節的那一面。',
        see:'手自然垂下來的時候，看看兩隻手各露出多少手背。', mean:'手背露比較多的那一邊，代表那隻手往裡面轉得比較多，上半身比較緊。', note:'判讀法 v0.4 的 U4b7。'},
       {id:'P3', enabled:true, key:'L2', half:'D', w:1, name:'膝蓋後面', type:'one', ask:'膝蓋後面的橫紋，哪邊比較斜？', how:'看膝蓋後面那條橫的皺紋。',
-       ex:[['img/knee_level.jpg','兩邊都平的'],['img/knee_slant.jpg','左邊斜的']], see:'膝蓋後面那條橫的皺紋，平常很少人注意，可是它很老實。', mean:'一邊比較斜，常常是那一邊的腳或屁股在多出力。', note:'判讀法 v0.4 的 L2。'},
+       ex:[['img/knee_compare.jpg','範例：左邊斜、右邊平']], see:'膝蓋後面那條橫的皺紋，平常很少人注意，可是它很老實。', mean:'一邊比較斜，常常是那一邊的腳或屁股在多出力。', note:'判讀法 v0.4 的 L2。'},
       {id:'P4', enabled:true, key:'L1', half:'D', w:1.5, name:'腳跟', type:'one', ask:'哪邊腳跟比較往外倒？', how:'跟直的白線比。',
        ex:[['img/heel_ok.jpg','兩邊都直直的'],['img/heel_out.jpg','左腳跟往外倒']], see:'腳跟就像房子的地基，黃醫師看得最仔細的就是這裡。', mean:'地基一歪，上面的膝蓋、屁股、甚至肩膀，都要跟著一起調整。', note:'判讀法 v0.4 的 L1，權重 1.5。'}
     ],
