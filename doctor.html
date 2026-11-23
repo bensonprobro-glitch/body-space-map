@@ -54,7 +54,7 @@ pre.rule{background:#2b2420;color:#f1e4d0;border-radius:6px;padding:14px;font-fa
 <script src="engine.js"></script>
 <script>
 const DRAFT='sk_cfg_draft', TESTS='sk_doc_tests';
-let CFG = ls(DRAFT) || clone(window.DEFAULT_CONFIG);
+let CFG = migrateCfg(ls(DRAFT)) || clone(window.DEFAULT_CONFIG);
 const D = window.DEFAULT_CONFIG;
 const T = {tab:'src', by: ls('sk_doc_name')||'', img:null, lm:null, crops:null, cmp:{}, a:{}, mv:{}, code:'', docJ:null, note:''};
 Tele.init(CFG.version+'-doctor','醫師後台');
@@ -83,7 +83,7 @@ function vSrc(){ const s=CFG.sources;
   <div class="grid2"><div class="sec"><h2>問診題</h2>
     ${s.questions.map((q,i)=>{ const P='sources.questions.'+i, sc=q.score||{mode:'none'}; return `<div class="item ${q.enabled?'':'off'}"><div class="ih"><b>${q.id}　${esc(q.t)}</b>${tog(P+'.enabled')}</div>
       ${fld('題目',P+'.t')}${fld('說明',P+'.sub')}
-      ${q.type==='choice'||q.type==='pics'?fld('選項',P+'.o','lines'):`<p class="muted sm ui">作答方式：${q.type==='bodymap'?'在人體照片上點痠痛位置（左右各 8 處）':'點選身體四個區塊之一'}</p>`}
+      ${q.type==='choice'||q.type==='pics'?fld('選項',P+'.o','lines'):`<p class="muted sm ui">作答方式：${q.type==='bodymap'?'在放大的人體照片上點痠痛位置（'+['第 1 步・上半身：頭頸、肩膀、上背、手肘手腕','第 2 步・腰和屁股','第 3 步・腿和腳：膝蓋、腳踝腳跟'][q.zone||0]+'，左右各一）；學員一定會經過這一頁':'點選身體四個區塊之一'}</p>`}
       <label class="f"><span>計分方式</span><select data-p="${P}.score.mode" data-rerender="1">
         <option value="none" ${sc.mode==='none'?'selected':''}>不計分（只用在報告）</option>
         ${q.type==='quadmap'?`<option value="quad" ${sc.mode==='quad'?'selected':''}>點到的區塊加分</option>`:''}

@@ -125,12 +125,11 @@ function vBrief(){ const it=[['img/step_ask.jpg','問一問',QS.length+' 個簡�
   return `<div class="card"><h2 class="mark">我們會一起做四件事</h2><div class="pgrid">${it.map(([src,t,d],i)=>`<div class="pcard" style="cursor:default" ${F(.05+i*.1)}><img src="${src}" alt=""><span><b>${i+1}. ${t}</b>　<span class="muted sm">${d}</span></span></div>`).join('')}</div><p class="muted">沒有對錯，照你的感覺選就好。建議戴上耳機。</p><button class="btn" data-act="next">好，開始</button></div>`; }
 function vQ(id){
   const q=QS.find(x=>x.id===id), k=QS.indexOf(q)+1, v=S.a[q.key]; let ui='';
-  if(q.type==='bodymap'){ const sel=v||[], t=ZT[S.zt||0], b=t.box;
-    ui=`<div class="zt">${ZT.map((z,i)=>{ const n=sel.filter(x=>z.parts.includes(x.slice(2))).length; return `<button data-act="zt" data-v="${i}" aria-pressed="${(S.zt||0)===i}">${z.name}${n?`<i>${n}</i>`:''}</button>`; }).join('')}</div>
+  if(q.type==='bodymap'){ const sel=v||[], t=ZT[q.zone||0], b=t.box, here=sel.filter(x=>t.parts.includes(x.slice(2)));
+    ui=`<div class="zt" style="pointer-events:none">${ZT.map((z,i)=>`<button aria-pressed="${(q.zone||0)===i}" tabindex="-1">${i+1}. ${z.name}</button>`).join('')}</div>
       <div class="pmap"><img data-dc="${b.join(',')}" alt="${t.name}">${HP.filter(h=>t.parts.includes(h[0])).map(([n,lx,ly,rx,ry])=>[['L',lx,ly],['R',rx,ry]].map(([sd,x,y])=>{ const z=sd+'-'+n, on=sel.includes(z);
         return `<button class="hs2 ${on?'on':''}" style="left:${((x-b[0])/(b[2]-b[0])*100).toFixed(1)}%;top:${((y-b[1])/(b[3]-b[1])*100).toFixed(1)}%" data-act="zone" data-z="${z}" aria-pressed="${on}"><span>${sd==='L'?'左':'右'}${n}</span></button>`; }).join('')).join('')}</div>
-            <div class="row">${(S.zt||0)<2?`<button class="btn ghost" data-act="zt" data-v="${(S.zt||0)+1}">下一區 ›</button>`:`<button class="btn ghost" data-act="nopain">都沒有</button>`}<button class="btn" data-act="qnext" ${sel.length?'':'disabled'}>好了${sel.length?`（${sel.length}）`:''}</button></div>
-      ${(S.zt||0)<2?'<button class="btn ghost small" data-act="nopain" style="align-self:center">都沒有不舒服</button>':''}`;
+      <div class="row"><button class="btn ghost" data-act="zonenone" data-zone="${q.zone||0}">這一區沒有</button><button class="btn" data-act="zonedone" ${here.length?'':'disabled'}>好了${here.length?`（${here.length}）`:''}</button></div>`;
   } else if(q.type==='quadmap'){ const fb=fitBox(bodyBox(DEMO_LM,1e9,1e9),.6), mx=(DEMO_LM.shL[0]+DEMO_LM.shR[0]+DEMO_LM.hipL[0]+DEMO_LM.hipR[0])/4, hy=(DEMO_LM.hipL[1]+DEMO_LM.hipR[1])/2, X=(mx-fb[0])/(fb[2]-fb[0])*100, Y=(hy-fb[1])/(fb[3]-fb[1])*100;
     const Z={LU:[0,0,X,Y,'左手・左肩'],RU:[X,0,100-X,Y,'右手・右肩'],LD:[0,Y,X,100-Y,'左腳・左膝'],RD:[X,Y,100-X,100-Y,'右腳・右膝']};
     ui=`<div class="pmap"><img data-dc="${fb.join(',')}" alt="從背後看的人">${Object.entries(Z).map(([qq,[l,t,w,h,lab]])=>`<button class="qz2 ${v===qq?'on':''}" style="left:${l}%;top:${t}%;width:${w}%;height:${h}%" data-act="ansq" data-q="${q.key}" data-v="${qq}">${lab}</button>`).join('')}</div><button class="btn ghost" data-act="ans" data-q="${q.key}" data-v="none">沒有</button>`;
@@ -344,7 +343,8 @@ document.addEventListener('click', async e=>{
   if(act==='rpprev'){ S.rp=Math.max(0,S.rp-1); render(); return; }
   if(act==='unit'){ Tele.ev('unit',{k:b.dataset.u}); toast('正式版會直接帶你到這個單元'); return; }
   if(act==='line'){ Tele.ev('share',{k:'line'}); return; }
-  if(act==='zt'){ S.zt=+b.dataset.v; tick(); render(); return; }
+  if(act==='zonenone'){ const t=ZT[+b.dataset.zone]; S.a.pain=(S.a.pain||[]).filter(x=>!t.parts.includes(x.slice(2))); Tele.ev('answer',{k:FLOW[S.i],d:[]}); praise(next); return; }
+  if(act==='zonedone'){ Tele.ev('answer',{k:FLOW[S.i],d:S.a.pain}); praise(next); return; }
   if(act==='pz'){ S.pz=b.dataset.v; Tele.ev('zoom',{k:S.pz}); render(); return; }
   if(act==='shareall'){ Tele.ev('share',{k:'cards'}); try{ if(!S.cards) await buildShare(); const files=await Promise.all(S.cards.map(async(u,i)=>new File([await (await fetch(u)).blob()],`我的身體地圖_${i+1}.jpg`,{type:'image/jpeg'}))); if(navigator.canShare&&navigator.canShare({files})) await navigator.share({files, title:'我的身體地圖'}); else throw 0; }catch(err){ if(err&&err.name==='AbortError') return; toast('請長按每一張分享卡，選「儲存」或「分享」'); } return; }
   if(act==='video'){ Tele.ev('share',{k:'video'}); const vb=$('#vidbox'); b.disabled=true; b.textContent='製作中 0%'; try{ if(!S.cards) await buildShare(); const f=await recordRecap(S.cards, p=>{ b.textContent='製作中 '+Math.round(p*100)+'%'; }); S.vidFile=f; const u=URL.createObjectURL(f);

@@ -4,11 +4,15 @@
 // =====================================================================
 window.BACKEND = 'https://script.google.com/macros/s/AKfycbz8lEGJFReE5NFtCD-TPk5BOZ6q5McjiMcM2KiPZIcuFl-YCtWTg0tIO89gZBuQdIlc/exec';
 window.DEFAULT_CONFIG = {
-  version: 'v0.8',
+  version: 'v0.9',
   sources: {
     questions: [
-      {id:'Q1', enabled:true, key:'pain', type:'bodymap', t:'身體哪裡最常痠痛、不舒服？', sub:'分三區點圓圈，可以點很多個。照片的左邊就是你的左邊。', score:{mode:'none'},
-       note:'只拿來在報告上做對照，不計分。依據：「痛的地方很常是在替別人扛的地方」〔黃醫師 9/8〕。'},
+      {id:'Q1a', enabled:true, key:'pain', type:'bodymap', zone:0, t:'上半身，哪裡常痠痛、不舒服？', sub:'點照片上的圓圈，可以點很多個。照片的左邊就是你的左邊。', score:{mode:'none'},
+       note:'痠痛位置第 1 步（共 3 步）：頭頸、肩膀、上背、手肘手腕。只拿來在報告上做對照，不計分。依據：「痛的地方很常是在替別人扛的地方」〔黃醫師 9/8〕。'},
+      {id:'Q1b', enabled:true, key:'pain', type:'bodymap', zone:1, t:'腰和屁股呢？', sub:'有不舒服就點圓圈；都沒有就按「這一區沒有」。', score:{mode:'none'},
+       note:'痠痛位置第 2 步（共 3 步）：腰、屁股。不計分。'},
+      {id:'Q1c', enabled:true, key:'pain', type:'bodymap', zone:2, t:'腿和腳呢？', sub:'有不舒服就點圓圈；都沒有就按「這一區沒有」。', score:{mode:'none'},
+       note:'痠痛位置第 3 步（共 3 步）：膝蓋、腳踝腳跟。不計分。'},
       {id:'Q2', enabled:true, key:'injury', type:'quadmap', t:'以前受過傷、現在已經不痛的地方？', sub:'例如扭到、拉傷、撞到、開過刀。點那一塊；沒有就按「沒有」。', score:{mode:'quad', w:1},
        note:'點到的區塊加分。依據：震波後「不痛了便以為好了」的病例〔黃醫師 9/8〕。'},
       {id:'Q3', enabled:true, key:'scar', type:'choice', t:'身上有沒有開過刀留下的疤？', o:['肚子','胸口或背','手或腳','沒有'], score:{mode:'none'},

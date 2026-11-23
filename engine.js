@@ -16,7 +16,9 @@ const clone = o => JSON.parse(JSON.stringify(o));
 
 // ---------- 設定 ----------
 const PREVIEW_KEY = 'sk_cfg_preview';
-function loadCfg(){ const q=new URLSearchParams(location.search); if(q.get('preview')==='1'){ const c=ls(PREVIEW_KEY); if(c&&c.sources) return {cfg:c, preview:true}; } return {cfg:clone(window.DEFAULT_CONFIG), preview:false}; }
+function migrateCfg(c){ if(!c||!c.sources) return c; const qs=c.sources.questions, i=qs.findIndex(q=>q.type==='bodymap'&&q.zone==null);
+  if(i>=0){ const def=window.DEFAULT_CONFIG.sources.questions.filter(q=>q.type==='bodymap'); qs.splice(i,1,...clone(def)); } return c; }
+function loadCfg(){ const q=new URLSearchParams(location.search); if(q.get('preview')==='1'){ const c=ls(PREVIEW_KEY); if(c&&c.sources) return {cfg:migrateCfg(c), preview:true}; } return {cfg:clone(window.DEFAULT_CONFIG), preview:false}; }
 
 // ---------- 計分（每一筆都留下規則文字，讓醫師看得懂是怎麼算的） ----------
 function score(cfg, ans){
