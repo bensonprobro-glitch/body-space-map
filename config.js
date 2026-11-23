@@ -4,10 +4,10 @@
 // =====================================================================
 window.BACKEND = 'https://script.google.com/macros/s/AKfycbz8lEGJFReE5NFtCD-TPk5BOZ6q5McjiMcM2KiPZIcuFl-YCtWTg0tIO89gZBuQdIlc/exec';
 window.DEFAULT_CONFIG = {
-  version: 'v0.7',
+  version: 'v0.8',
   sources: {
     questions: [
-      {id:'Q1', enabled:true, key:'pain', type:'bodymap', t:'身體哪裡最常痠痛、不舒服？', sub:'點照片上的圓圈，可以點很多個。照片的左邊就是你的左邊。', score:{mode:'none'},
+      {id:'Q1', enabled:true, key:'pain', type:'bodymap', t:'身體哪裡最常痠痛、不舒服？', sub:'分三區點圓圈，可以點很多個。照片的左邊就是你的左邊。', score:{mode:'none'},
        note:'只拿來在報告上做對照，不計分。依據：「痛的地方很常是在替別人扛的地方」〔黃醫師 9/8〕。'},
       {id:'Q2', enabled:true, key:'injury', type:'quadmap', t:'以前受過傷、現在已經不痛的地方？', sub:'例如扭到、拉傷、撞到、開過刀。點那一塊；沒有就按「沒有」。', score:{mode:'quad', w:1},
        note:'點到的區塊加分。依據：震波後「不痛了便以為好了」的病例〔黃醫師 9/8〕。'},

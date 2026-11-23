@@ -78,15 +78,21 @@ function rulesText(cfg){
 function imgFromSrc(src){ return new Promise((res,rej)=>{ const im=new Image(); im.onload=()=>res(im); im.onerror=rej; im.src=src; }); }
 let DEMO_IMG=null; const demoP=imgFromSrc('img/demo_back.jpg').then(im=>{ const c=document.createElement('canvas'); c.width=im.width; c.height=im.height; c.getContext('2d').drawImage(im,0,0); DEMO_IMG=c; return c; });
 function bodyBox(lm,W0,H0){ const xs=PT_KEYS.map(k=>lm[k][0]), ys=PT_KEYS.map(k=>lm[k][1]), pad=(Math.max(...ys)-Math.min(...ys))*.12; return [Math.max(0,Math.min(...xs)-pad*1.5), Math.max(0,Math.min(...ys)-pad*1.7), Math.min(W0,Math.max(...xs)+pad*1.5), Math.min(H0,Math.max(...ys)+pad*.5)]; }
+// 不同人上傳的照片大小、遠近都不一樣：一律用身體範圍裁切，再補邊成固定比例（預設 3:5），讓每張身體圖大小、位置一致
+function fitBox(box, aspect){ let [x0,y0,x1,y1]=box, w=x1-x0, h=y1-y0, cx=(x0+x1)/2, cy=(y0+y1)/2; if(w/h<aspect) w=h*aspect; else h=w/aspect; return [cx-w/2, cy-h/2, cx+w/2, cy+h/2]; }
+function drawCrop(g, img, box, W, H, bg='#e9e3da'){ const [x0,y0,x1,y1]=box, sx=W/(x1-x0), sy=H/(y1-y0); g.fillStyle=bg; g.fillRect(0,0,W,H);
+  const ix0=Math.max(0,x0), iy0=Math.max(0,y0), ix1=Math.min(img.width,x1), iy1=Math.min(img.height,y1); if(ix1>ix0&&iy1>iy0) g.drawImage(img, ix0,iy0,ix1-ix0,iy1-iy0, (ix0-x0)*sx,(iy0-y0)*sy,(ix1-ix0)*sx,(iy1-iy0)*sy); }
+function partBox(lm, part){ const L=lm, top=Math.min(L.earL[1],L.earR[1]), hipY=(L.hipL[1]+L.hipR[1])/2, heel=Math.max(L.heL[1],L.heR[1]), Hb=heel-top, xs=PT_KEYS.map(k=>L[k][0]), xl=Math.min(...xs)-Hb*.08, xr=Math.max(...xs)+Hb*.08;
+  if(part==='up') return fitBox([xl, top-Hb*.1, xr, hipY+Hb*.06], .9); if(part==='down') return fitBox([xl, hipY-Hb*.06, xr, heel+Hb*.05], .7); return fitBox(bodyBox(L,1e9,1e9), .6); }
 function quadPhoto(img, lm, qs, main, W=520, labels=true){
-  const [x0,y0,x1,y1]=bodyBox(lm,img.width,img.height), sc=W/(x1-x0), H=Math.round((y1-y0)*sc), c=document.createElement('canvas'); c.width=W; c.height=H; const g=c.getContext('2d'); g.drawImage(img,x0,y0,x1-x0,y1-y0,0,0,W,H);
+  const [x0,y0,x1,y1]=fitBox(bodyBox(lm,1e9,1e9), .6), sc=W/(x1-x0), H=Math.round((y1-y0)*sc), c=document.createElement('canvas'); c.width=W; c.height=H; const g=c.getContext('2d'); drawCrop(g,img,[x0,y0,x1,y1],W,H);
   const P=p=>[(p[0]-x0)*sc,(p[1]-y0)*sc], midX=(P(lm.shL)[0]+P(lm.shR)[0]+P(lm.hipL)[0]+P(lm.hipR)[0])/4, hipY=(P(lm.hipL)[1]+P(lm.hipR)[1])/2;
   g.fillStyle='rgba(43,32,24,.18)'; g.fillRect(0,0,W,H);
   const R={LU:[0,0,midX,hipY],RU:[midX,0,W-midX,hipY],LD:[0,hipY,midX,H-hipY],RD:[midX,hipY,W-midX,H-hipY]};
   Object.entries(R).forEach(([q,[a,b,w,h]])=>{ const v=Math.min(1,(qs[q]||0)/.8); g.fillStyle=`rgba(122,86,56,${(v*.62).toFixed(3)})`; g.fillRect(a,b,w,h); });
   g.strokeStyle='rgba(255,255,255,.7)'; g.lineWidth=Math.max(1,W/360); g.setLineDash([5,5]); g.beginPath(); g.moveTo(midX,0); g.lineTo(midX,H); g.moveTo(0,hipY); g.lineTo(W,hipY); g.stroke(); g.setLineDash([]);
   if(main){ const [a,b,w,h]=R[main]; g.strokeStyle='#f1d9b3'; g.lineWidth=Math.max(2,W/180); g.strokeRect(a+2,b+2,w-4,h-4); }
-  if(labels){ const fs=Math.round(W/14); g.font=`500 ${fs}px "Noto Sans TC",sans-serif`;
+  if(labels){ const fs=Math.round(W/12); g.font=`500 ${fs}px "Noto Sans TC",sans-serif`;
     Object.entries(R).forEach(([q,[a,b,w,h]])=>{ const t=QN[q]+' '+Math.round((qs[q]||0)*100), tw=g.measureText(t).width, tx=q[0]==='L'?a+8:a+w-tw-16, ty=q[1]==='U'?b+10:b+h-fs-20; g.fillStyle=q===main?'rgba(122,86,56,.95)':'rgba(43,39,36,.65)'; g.fillRect(tx,ty,tw+12,fs+10); g.fillStyle='#fff'; g.fillText(t,tx+6,ty+fs+1); }); }
   return c.toDataURL('image/jpeg',.88);
 }
@@ -129,16 +135,17 @@ async function detect(c){
   }catch(err){ const W=c.width,H=c.height,cx=W/2,top=H*.06,h=H*.89,at=(dx,fy)=>[cx+dx*h,top+fy*h,.3];
     return {lm:{earL:at(-.03,.09),earR:at(.03,.09),shL:at(-.09,.19),shR:at(.09,.19),wrL:at(-.1,.47),wrR:at(.1,.47),idxL:at(-.1,.53),idxR:at(.1,.53),hipL:at(-.06,.5),hipR:at(.06,.5),knL:at(-.045,.72),knR:at(.045,.72),anL:at(-.04,.93),anR:at(.04,.93),heL:at(-.04,.96),heR:at(.04,.96)}, ai:'fail'}; }
 }
-function drawPointsOn(cv, img, lm, onDrag){
-  const W=img.width, H=img.height; cv.width=W; cv.height=H; const g=cv.getContext('2d'); g.drawImage(img,0,0); const r=Math.max(7,W/80);
-  g.lineWidth=Math.max(2,W/420); g.strokeStyle='rgba(122,86,56,.85)';
-  [['shL','shR'],['hipL','hipR'],['shL','wrL'],['shR','wrR'],['hipL','anL'],['hipR','anR']].forEach(([a,b])=>{ g.beginPath(); g.moveTo(lm[a][0],lm[a][1]); g.lineTo(lm[b][0],lm[b][1]); g.stroke(); });
-  const fs=Math.round(W/22); g.font=`500 ${fs}px "Noto Sans TC",sans-serif`;
-  PT_KEYS.forEach(k=>{ const [x,y,v]=lm[k]; g.beginPath(); g.arc(x,y,r,0,7); g.fillStyle=v<.5?'#b1463a':'#7a5638'; g.fill(); g.lineWidth=2; g.strokeStyle='#fff'; g.stroke();
-    const nm=PT_NAME[k.replace(/[LR]$/,'')], left=k.endsWith('L'), tw=g.measureText(nm).width, tx=left?x-r-8-tw:x+r+8; g.fillStyle='rgba(43,32,24,.72)'; g.fillRect(tx-4,y-fs*.7,tw+8,fs*1.3); g.fillStyle='#fff'; g.fillText(nm,tx,y+fs*.38); });
-  if(!onDrag) return; let drag=null; const pos=ev=>{ const b=cv.getBoundingClientRect(); return [(ev.clientX-b.left)*W/b.width,(ev.clientY-b.top)*H/b.height,W/b.width]; };
-  cv.onpointerdown=ev=>{ const [x,y,s]=pos(ev); let best=null,bd=1e9; PT_KEYS.forEach(k=>{ const d=Math.hypot(lm[k][0]-x,lm[k][1]-y); if(d<bd){bd=d;best=k;} }); if(bd<30*s){ drag=best; cv.setPointerCapture(ev.pointerId); } };
-  cv.onpointermove=ev=>{ if(!drag) return; const [x,y]=pos(ev); lm[drag]=[x,y,1]; drawPointsOn(cv,img,lm,null); }; cv.onpointerup=()=>{ if(drag){ drag=null; onDrag&&onDrag(); } };
+function drawPointsOn(cv, img, lm, onDrag, part='all'){
+  const box=partBox(lm,part), [x0,y0,x1,y1]=box, W=Math.min(1000, Math.round(x1-x0)), sc=W/(x1-x0), H=Math.round((y1-y0)*sc); cv.width=W; cv.height=H; const g=cv.getContext('2d'); drawCrop(g,img,box,W,H);
+  const P=k=>[(lm[k][0]-x0)*sc,(lm[k][1]-y0)*sc], r=Math.max(9,W/48);
+  g.lineWidth=Math.max(2,W/300); g.strokeStyle='rgba(122,86,56,.85)';
+  [['shL','shR'],['hipL','hipR'],['shL','wrL'],['shR','wrR'],['hipL','anL'],['hipR','anR']].forEach(([a,b])=>{ const A=P(a),B=P(b); g.beginPath(); g.moveTo(A[0],A[1]); g.lineTo(B[0],B[1]); g.stroke(); });
+  const fs=Math.round(W/(part==='all'?16:20)); g.font=`500 ${fs}px "Noto Sans TC",sans-serif`;
+  PT_KEYS.forEach(k=>{ const [x,y]=P(k), v=lm[k][2]; if(x<-r||y<-r||x>W+r||y>H+r) return; g.beginPath(); g.arc(x,y,r,0,7); g.fillStyle=v<.5?'#b1463a':'#7a5638'; g.fill(); g.lineWidth=3; g.strokeStyle='#fff'; g.stroke();
+    const nm=PT_NAME[k.replace(/[LR]$/,'')], left=k.endsWith('L'), tw=g.measureText(nm).width, tx=left?x-r-10-tw:x+r+10; g.fillStyle='rgba(43,32,24,.78)'; g.fillRect(tx-5,y-fs*.72,tw+10,fs*1.36); g.fillStyle='#fff'; g.fillText(nm,tx,y+fs*.38); });
+  if(!onDrag) return; let drag=null; const pos=ev=>{ const b=cv.getBoundingClientRect(); return [x0+(ev.clientX-b.left)*(x1-x0)/b.width, y0+(ev.clientY-b.top)*(y1-y0)/b.height, (x1-x0)/b.width]; };
+  cv.onpointerdown=ev=>{ const [x,y,s]=pos(ev); let best=null,bd=1e9; PT_KEYS.forEach(k=>{ const d=Math.hypot(lm[k][0]-x,lm[k][1]-y); if(d<bd){bd=d;best=k;} }); if(bd<36*s){ drag=best; cv.setPointerCapture(ev.pointerId); ev.preventDefault(); } };
+  cv.onpointermove=ev=>{ if(!drag) return; const [x,y]=pos(ev); lm[drag]=[x,y,1]; drawPointsOn(cv,img,lm,null,part); }; cv.onpointerup=()=>{ if(drag){ drag=null; onDrag&&onDrag(); } };
 }
 
 // ---------- 後端與使用紀錄 ----------
