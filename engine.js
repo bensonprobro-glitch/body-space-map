@@ -17,7 +17,10 @@ const clone = o => JSON.parse(JSON.stringify(o));
 // ---------- 設定 ----------
 const PREVIEW_KEY = 'sk_cfg_preview';
 function migrateCfg(c){ if(!c||!c.sources) return c; const qs=c.sources.questions, i=qs.findIndex(q=>q.type==='bodymap'&&q.zone==null);
-  if(i>=0){ const def=window.DEFAULT_CONFIG.sources.questions.filter(q=>q.type==='bodymap'); qs.splice(i,1,...clone(def)); } return c; }
+  if(i>=0){ const def=window.DEFAULT_CONFIG.sources.questions.filter(q=>q.type==='bodymap'); qs.splice(i,1,...clone(def)); }
+  const D=window.DEFAULT_CONFIG; ['points','photoSteps','photoShot'].forEach(k=>{ if(!c.sources[k]) c.sources[k]=clone(D.sources[k]); }); if(c.explain&&!c.explain.levels) c.explain.levels=clone(D.explain.levels);
+  (c.sources.compares||[]).forEach(cp=>{ if(cp.ex) cp.ex.forEach(e=>{ if(e[0]==='gen:ok') e[0]='img/knee_level.jpg'; if(e[0]==='gen:tilt') e[0]='img/knee_slant.jpg'; }); }); return c; }
+function levelOf(v, levels){ const L=levels||(window.DEFAULT_CONFIG.explain.levels); return L.find(l=>v<=l.max)||L[L.length-1]; }
 function loadCfg(){ const q=new URLSearchParams(location.search); if(q.get('preview')==='1'){ const c=ls(PREVIEW_KEY); if(c&&c.sources) return {cfg:migrateCfg(c), preview:true}; } return {cfg:clone(window.DEFAULT_CONFIG), preview:false}; }
 
 // ---------- 計分（每一筆都留下規則文字，讓醫師看得懂是怎麼算的） ----------
@@ -53,14 +56,14 @@ function traceText(cfg, r){
   const L=cfg.logic, lines=[];
   lines.push('// 1. 每一個提示加分');
   r.votes.forEach(v=>lines.push('  '+v.rule)); if(!r.votes.length) lines.push('  （沒有任何提示）');
-  lines.push('', '// 2. 加總 ÷ 滿分 = 辛苦指數');
+  lines.push('', '// 2. 加總 ÷ 滿分 = 緊繃分數');
   QUADS.forEach(k=>lines.push(`  ${QN[k]}：${r.raw[k].toFixed(2)} ÷ ${r.max[k[1]].toFixed(2)} = ${Math.round(r.qs[k]*100)}`));
   lines.push('', '// 3. 判定規則');
   const top=Object.entries(r.qs).sort((a,b)=>b[1]-a[1])[0];
   lines.push(`  最高分 ${QN[top[0]]} ${Math.round(top[1]*100)} ${r.passScore?'≥':'<'} 門檻 ${Math.round(L.minScore*100)}  ${r.passScore?'✓':'✗'}`);
   lines.push(`  回答／動作／照片中，指向${r.lean?QN[r.lean]:'同一區'}的有 ${r.nAgree} 種 ${r.nAgree>=L.minAgree?'≥':'<'} 需要 ${L.minAgree} 種  ${r.nAgree>=L.minAgree?'✓':'✗'}`);
   lines.push(`    （回答→${r.agree[0].top?QN[r.agree[0].top]:'無'}、動作→${r.agree[1].top?QN[r.agree[1].top]:'無'}、照片→${r.agree[2].top?QN[r.agree[2].top]:'無'}）`);
-  lines.push('', `// 結論：${r.main?'最辛苦＝'+QN[r.main]+(r.second?'，第二＝'+QN[r.second]:''):'不明顯（沒有通過上面的規則）'}`);
+  lines.push('', `// 結論：${r.main?'最緊繃＝'+QN[r.main]+(r.second?'，第二＝'+QN[r.second]:''):'不明顯（沒有通過上面的規則）'}`);
   return lines.join('\n');
 }
 function rulesText(cfg){
@@ -72,7 +75,7 @@ function rulesText(cfg){
   s.moves.filter(m=>m.enabled).forEach(m=>lines.push(`${m.id} ${m.name}（${m.half==='U'?'上半身':'下半身'}）\n   → 選左/右，那一側${m.half==='U'?'上':'下'}方 +（${Object.entries(L.feelWeight).map(([k,v])=>k.slice(0,4)+' '+v).join('／')}）× ${m.w}`));
   s.compares.filter(c=>c.enabled).forEach(c=>lines.push(`${c.id} 照片｜${c.name}（${c.half==='U'?'上半身':'下半身'}）\n   → 選左/右，那一側${c.half==='U'?'上':'下'}方 +${c.w}`));
   if(L.aiMeasure.enabled) lines.push(`AI 電腦量肩膀、骨盆傾斜\n   → 超過 ${L.aiMeasure.minDeg}°，較高那一側 +${L.aiMeasure.w}`);
-  lines.push('', '// 判定', `辛苦指數 = 該區加分 ÷ 該半身滿分`, `最高分要 ≥ ${Math.round(L.minScore*100)}`, `回答、動作、照片三種來源，至少 ${L.minAgree} 種指向同一區`, `→ 通過才說「這一區最辛苦」，否則顯示「不明顯」`);
+  lines.push('', '// 判定', `緊繃分數 = 該區加分 ÷ 該半身滿分`, `最高分要 ≥ ${Math.round(L.minScore*100)}`, `回答、動作、照片三種來源，至少 ${L.minAgree} 種指向同一區`, `→ 通過才說「這一區最緊繃」，否則顯示「不明顯」`);
   return lines.join('\n');
 }
 
@@ -94,8 +97,12 @@ function quadPhoto(img, lm, qs, main, W=520, labels=true){
   Object.entries(R).forEach(([q,[a,b,w,h]])=>{ const v=Math.min(1,(qs[q]||0)/.8); g.fillStyle=`rgba(122,86,56,${(v*.62).toFixed(3)})`; g.fillRect(a,b,w,h); });
   g.strokeStyle='rgba(255,255,255,.7)'; g.lineWidth=Math.max(1,W/360); g.setLineDash([5,5]); g.beginPath(); g.moveTo(midX,0); g.lineTo(midX,H); g.moveTo(0,hipY); g.lineTo(W,hipY); g.stroke(); g.setLineDash([]);
   if(main){ const [a,b,w,h]=R[main]; g.strokeStyle='#f1d9b3'; g.lineWidth=Math.max(2,W/180); g.strokeRect(a+2,b+2,w-4,h-4); }
-  if(labels){ const fs=Math.round(W/12); g.font=`500 ${fs}px "Noto Sans TC",sans-serif`;
-    Object.entries(R).forEach(([q,[a,b,w,h]])=>{ const t=QN[q]+' '+Math.round((qs[q]||0)*100), tw=g.measureText(t).width, tx=q[0]==='L'?a+8:a+w-tw-16, ty=q[1]==='U'?b+10:b+h-fs-20; g.fillStyle=q===main?'rgba(122,86,56,.95)':'rgba(43,39,36,.65)'; g.fillRect(tx,ty,tw+12,fs+10); g.fillStyle='#fff'; g.fillText(t,tx+6,ty+fs+1); }); }
+  if(labels){ const fs=Math.round(W/12), lv=Array.isArray(labels)?labels:null, fs2=Math.round(fs*.72);
+    Object.entries(R).forEach(([q,[a,b,w,h]])=>{ const v=Math.round((qs[q]||0)*100), t=QN[q]+' '+v; g.font=`500 ${fs}px "Noto Sans TC",sans-serif`; let tw=g.measureText(t).width; const L=lv?levelOf(v,lv):null;
+      if(L){ g.font=`500 ${fs2}px "Noto Sans TC",sans-serif`; tw=Math.max(tw,g.measureText(L.name).width); }
+      const bh=L?fs+fs2+18:fs+10, tx=q[0]==='L'?a+8:a+w-tw-16, ty=q[1]==='U'?b+10:b+h-bh-10;
+      g.fillStyle=L?L.color:(q===main?'rgba(122,86,56,.95)':'rgba(43,39,36,.65)'); g.globalAlpha=L?.94:1; g.fillRect(tx,ty,tw+12,bh); g.globalAlpha=1; g.fillStyle='#fff';
+      g.font=`500 ${fs}px "Noto Sans TC",sans-serif`; g.fillText(t,tx+6,ty+fs+1); if(L){ g.font=`500 ${fs2}px "Noto Sans TC",sans-serif`; g.fillText(L.name,tx+6,ty+fs+fs2+8); } }); }
   return c.toDataURL('image/jpeg',.88);
 }
 function measure(lm){ const t=(a,b)=>Math.atan2(lm[b][1]-lm[a][1],lm[b][0]-lm[a][0])*180/Math.PI; return {sh:t('shL','shR'), hip:t('hipL','hipR')}; }
@@ -137,16 +144,22 @@ async function detect(c){
   }catch(err){ const W=c.width,H=c.height,cx=W/2,top=H*.06,h=H*.89,at=(dx,fy)=>[cx+dx*h,top+fy*h,.3];
     return {lm:{earL:at(-.03,.09),earR:at(.03,.09),shL:at(-.09,.19),shR:at(.09,.19),wrL:at(-.1,.47),wrR:at(.1,.47),idxL:at(-.1,.53),idxR:at(.1,.53),hipL:at(-.06,.5),hipR:at(.06,.5),knL:at(-.045,.72),knR:at(.045,.72),anL:at(-.04,.93),anR:at(.04,.93),heL:at(-.04,.96),heR:at(.04,.96)}, ai:'fail'}; }
 }
+function groupBox(lm, keys){ const ks=keys.flatMap(k=>[k+'L',k+'R']), Hb=Math.max(lm.heL[1],lm.heR[1])-Math.min(lm.earL[1],lm.earR[1]), xs=ks.map(k=>lm[k][0]), ys=ks.map(k=>lm[k][1]), pad=Hb*.08, px=Hb*.21;
+  return fitBox([Math.min(...xs)-px, Math.min(...ys)-pad, Math.max(...xs)+px, Math.max(...ys)+pad], 1.15); }
 function drawPointsOn(cv, img, lm, onDrag, part='all'){
-  const box=partBox(lm,part), [x0,y0,x1,y1]=box, W=Math.min(1000, Math.round(x1-x0)), sc=W/(x1-x0), H=Math.round((y1-y0)*sc); cv.width=W; cv.height=H; const g=cv.getContext('2d'); drawCrop(g,img,box,W,H);
-  const P=k=>[(lm[k][0]-x0)*sc,(lm[k][1]-y0)*sc], r=Math.max(9,W/48);
+  const grp=Array.isArray(part)?part:null, KEYS=grp?PT_KEYS.filter(k=>grp.includes(k.replace(/[LR]$/,''))):PT_KEYS;
+  const box=grp?groupBox(lm,grp):partBox(lm,part), [x0,y0,x1,y1]=box, W=Math.min(1000, Math.round(x1-x0)), sc=W/(x1-x0), H=Math.round((y1-y0)*sc); cv.width=W; cv.height=H; const g=cv.getContext('2d'); drawCrop(g,img,box,W,H);
+  const P=k=>[(lm[k][0]-x0)*sc,(lm[k][1]-y0)*sc], r=grp?Math.max(14,W/30):Math.max(9,W/48);
   g.lineWidth=Math.max(2,W/300); g.strokeStyle='rgba(122,86,56,.85)';
-  [['shL','shR'],['hipL','hipR'],['shL','wrL'],['shR','wrR'],['hipL','anL'],['hipR','anR']].forEach(([a,b])=>{ const A=P(a),B=P(b); g.beginPath(); g.moveTo(A[0],A[1]); g.lineTo(B[0],B[1]); g.stroke(); });
-  const fs=Math.round(W/(part==='all'?16:20)); g.font=`500 ${fs}px "Noto Sans TC",sans-serif`;
-  PT_KEYS.forEach(k=>{ const [x,y]=P(k), v=lm[k][2]; if(x<-r||y<-r||x>W+r||y>H+r) return; g.beginPath(); g.arc(x,y,r,0,7); g.fillStyle=v<.5?'#b1463a':'#7a5638'; g.fill(); g.lineWidth=3; g.strokeStyle='#fff'; g.stroke();
-    const nm=PT_NAME[k.replace(/[LR]$/,'')], left=k.endsWith('L'), tw=g.measureText(nm).width, tx=left?x-r-10-tw:x+r+10; g.fillStyle='rgba(43,32,24,.78)'; g.fillRect(tx-5,y-fs*.72,tw+10,fs*1.36); g.fillStyle='#fff'; g.fillText(nm,tx,y+fs*.38); });
+  if(!grp) [['shL','shR'],['hipL','hipR'],['shL','wrL'],['shR','wrR'],['hipL','anL'],['hipR','anR']].forEach(([a,b])=>{ const A=P(a),B=P(b); g.beginPath(); g.moveTo(A[0],A[1]); g.lineTo(B[0],B[1]); g.stroke(); });
+  const fs=Math.round(W/(grp?15:part==='all'?16:20)); g.font=`500 ${fs}px "Noto Sans TC",sans-serif`;
+  const LB=[]; KEYS.forEach(k=>{ const [x,y]=P(k), v=lm[k][2]; if(x<-r||y<-r||x>W+r||y>H+r) return; g.beginPath(); g.arc(x,y,r,0,7); g.fillStyle=v<.5?'#b1463a':'#7a5638'; g.fill(); g.lineWidth=3; g.strokeStyle='#fff'; g.stroke();
+    const nm=(grp?(k.endsWith('L')?'左':'右'):'')+PT_NAME[k.replace(/[LR]$/,'')], left=k.endsWith('L'), tw=g.measureText(nm).width; let tx=left?x-r-10-tw:x+r+10; if(tx<6||tx+tw>W-6) tx=left?x+r+10:x-r-10-tw; LB.push({x,y,ly:y,tx,tw,nm,side:tx<x}); });
+  [true,false].forEach(sd=>{ const L=LB.filter(b=>b.side===sd).sort((a,b)=>a.y-b.y), gap=fs*1.5; for(let it=0;it<4;it++) for(let q=1;q<L.length;q++){ const d=L[q].ly-L[q-1].ly; if(d<gap){ const m=(gap-d)/2; L[q-1].ly-=m; L[q].ly+=m; } } });
+  LB.forEach(b=>{ if(Math.abs(b.ly-b.y)>3){ g.strokeStyle='rgba(255,255,255,.9)'; g.lineWidth=2; g.beginPath(); g.moveTo(b.x,b.y); g.lineTo(b.side?b.tx+b.tw+5:b.tx-5,b.ly); g.stroke(); }
+    g.fillStyle='rgba(43,32,24,.78)'; g.fillRect(b.tx-5,b.ly-fs*.72,b.tw+10,fs*1.36); g.fillStyle='#fff'; g.fillText(b.nm,b.tx,b.ly+fs*.38); });
   if(!onDrag) return; let drag=null; const pos=ev=>{ const b=cv.getBoundingClientRect(); return [x0+(ev.clientX-b.left)*(x1-x0)/b.width, y0+(ev.clientY-b.top)*(y1-y0)/b.height, (x1-x0)/b.width]; };
-  cv.onpointerdown=ev=>{ const [x,y,s]=pos(ev); let best=null,bd=1e9; PT_KEYS.forEach(k=>{ const d=Math.hypot(lm[k][0]-x,lm[k][1]-y); if(d<bd){bd=d;best=k;} }); if(bd<36*s){ drag=best; cv.setPointerCapture(ev.pointerId); ev.preventDefault(); } };
+  cv.onpointerdown=ev=>{ const [x,y,s]=pos(ev); let best=null,bd=1e9; KEYS.forEach(k=>{ const d=Math.hypot(lm[k][0]-x,lm[k][1]-y); if(d<bd){bd=d;best=k;} }); if(bd<(grp?60:36)*s){ drag=best; cv.setPointerCapture(ev.pointerId); ev.preventDefault(); } };
   cv.onpointermove=ev=>{ if(!drag) return; const [x,y]=pos(ev); lm[drag]=[x,y,1]; drawPointsOn(cv,img,lm,null,part); }; cv.onpointerup=()=>{ if(drag){ drag=null; onDrag&&onDrag(); } };
 }
 
