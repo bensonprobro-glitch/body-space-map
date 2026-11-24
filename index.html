@@ -49,7 +49,7 @@ p.lead{font-size:19px;line-height:1.6}
 p.hint{font-size:18px;margin:2px 0}
 .ex2 figcaption{font-size:16px}
 .lv{display:inline-block;font-size:15px;color:#fff;padding:2px 10px;border-radius:999px;margin-left:8px;vertical-align:middle;font-style:normal;font-family:var(--fu)}
-.lvlegend{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:6px;font-size:13px;white-space:nowrap;color:var(--muted);font-family:var(--fu)}.lvlegend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+.lvlegend{display:flex;justify-content:center;gap:5px;flex-wrap:wrap;margin-top:6px;font-size:12px;white-space:nowrap;color:var(--muted);font-family:var(--fu)}.lvlegend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:4px;vertical-align:-1px}
 .vid{width:min(100%,220px);display:block;margin:8px auto 0;border-radius:8px}
 
 .hero2{position:relative;display:grid;grid-template-columns:1fr 104px;gap:6px;height:min(46vh,400px);margin:2px 0 4px}
@@ -71,6 +71,38 @@ p.hint{font-size:18px;margin:2px 0}
 .warnbox{background:#f6e7d6;color:#6b4026;border-left:3px solid #a8553a;border-radius:6px;padding:10px 12px;font-size:15px;line-height:1.6}
 .bigsteps.pre li{font-size:18px;color:var(--ink);align-items:flex-start}.bigsteps.pre li b{margin-top:2px}
 .ex2:has(figure:nth-child(3)){grid-template-columns:1fr 1fr 1fr}.ex2:has(figure:nth-child(3)) img{aspect-ratio:3/4;object-position:60% 88%}
+
+.ax{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:center}
+.axfig{position:relative;height:min(42vh,360px);overflow:hidden;border-radius:6px;background:#efe9df}
+.axfig img{position:absolute;left:50%;top:0;height:100%;transform:translateX(-50%);mix-blend-mode:multiply;filter:saturate(.6);transition:transform 1.2s ease}
+.axfig i,.axfig b{position:absolute;opacity:0;transition:opacity .8s}
+.axfig b{font-family:var(--fs);font-size:20px;color:var(--brown);font-weight:600}
+.ax.go .axfig i,.ax.go .axfig b{opacity:1}
+.ax-ud .a1{left:0;right:0;top:0;height:50%;background:rgba(200,140,80,.28);animation:axp 2.4s ease-in-out infinite}
+.ax-ud .a2{left:0;right:0;top:50%;bottom:0;background:rgba(200,140,80,.28);animation:axp 2.4s ease-in-out infinite 1.2s;border-top:2px dashed var(--brown)}
+.ax-ud .l1{left:8px;top:8px}.ax-ud .l1::after{content:'上'}.ax-ud .l2{left:8px;bottom:8px}.ax-ud .l2::after{content:'下'}
+.ax-lr .a1{top:0;bottom:0;left:0;width:50%;background:rgba(200,140,80,.28);animation:axp 2.4s ease-in-out infinite}
+.ax-lr .a2{top:0;bottom:0;left:50%;right:0;background:rgba(200,140,80,.28);animation:axp 2.4s ease-in-out infinite 1.2s;border-left:2px dashed var(--brown)}
+.ax-lr .l1{left:8px;top:8px}.ax-lr .l1::after{content:'左'}.ax-lr .l2{right:8px;top:8px}.ax-lr .l2::after{content:'右'}
+.ax-fb .a1{top:0;bottom:0;left:0;width:50%;background:rgba(120,120,120,.16);animation:axp 2.4s ease-in-out infinite}
+.ax-fb .a2{top:0;bottom:0;left:50%;right:0;background:rgba(120,120,120,.16);animation:axp 2.4s ease-in-out infinite 1.2s;border-left:2px dashed #9a8f84}
+.ax-fb .l1{left:8px;top:8px}.ax-fb .l1::after{content:'前'}.ax-fb .l2{right:8px;top:8px}.ax-fb .l2::after{content:'後'}
+.ax-io img{transform:translateX(-50%) scale(1.9) translateY(-14%)}
+.ax-io .l1{left:8px;top:8px}.ax-io .l1::after{content:'左'}.ax-io .l2{right:8px;top:8px}.ax-io .l2::after{content:'右'}
+.axfig .rot{position:absolute;left:0;width:100%;top:30%;opacity:0;fill:none;stroke:#a8553a;stroke-width:1.6;stroke-linecap:round;transition:opacity .8s}.axfig .rot text{fill:#6b4026;stroke:none;font-size:7px;font-family:var(--fs);font-weight:600}.axfig .rot .rg{stroke-dasharray:6 4;animation:axd 1.6s linear infinite}.axfig .rot .r2{animation-direction:reverse}
+.ax-io.go .rot{opacity:1}
+@keyframes axd{to{stroke-dashoffset:-20}}
+@keyframes axp{0%,100%{opacity:.15}50%{opacity:1}}
+@keyframes axr{0%,100%{transform:scaleX(1)}50%{transform:scaleX(-1)}}
+.axtx .axname{font-family:var(--fs);font-size:44px;font-weight:600;color:var(--ink);letter-spacing:.2em}
+.axtx p{font-size:17px;margin:6px 0}
+.axbadge{display:inline-block;padding:4px 12px;border-radius:999px;font-size:15px;background:#e5ddd2;color:var(--muted);font-family:var(--fu)}.axbadge.on{background:#7d8f6a;color:#fff}
+.axdots{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.axdots button{border:1px solid var(--line);background:transparent;border-radius:8px;padding:8px 0;font-size:15px;color:var(--muted);font-family:var(--fs)}
+.axdots button.yes{color:var(--brown)}.axdots button.on{background:var(--brown);color:#fff;border-color:var(--brown)}
+.axend{font-size:17px;text-align:center;margin:4px 0}
+.ptex2{display:grid;grid-template-columns:42% 1fr;gap:10px;align-items:start}.ptex2 img{width:100%;border-radius:8px}
+.ptex2 ol{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}.ptex2 li{font-size:14px;line-height:1.45;color:var(--muted)}.ptex2 li b{display:block;font-size:16px;color:var(--ink)}
 </style>
 </head>
 <body>
@@ -88,9 +120,9 @@ const ZT = [{name:'上半身', parts:['頭頸','肩膀','上背','手肘手腕']
 const DC={}; async function fillDC(){ const els=document.querySelectorAll('img[data-dc]'); if(!els.length) return; await demoP; els.forEach(el=>{ const k=el.dataset.dc; if(!DC[k]){ const b=k.split(',').map(Number), W=Math.min(900,Math.round(b[2]-b[0])), H=Math.round(W*(b[3]-b[1])/(b[2]-b[0])), c=document.createElement('canvas'); c.width=W; c.height=H; drawCrop(c.getContext('2d'),DEMO_IMG,b,W,H); DC[k]=c.toDataURL('image/jpeg',.88); } el.src=DC[k]; }); }
 const PRAISE = ['很好！','答得好！','你很認真喔','觀察得真仔細','做得很棒','就是這樣！','好棒，繼續加油'];
 const S = {doc:false, snd:true, i:0, t0:null, a:{}, mv:{}, ph:{mode:null,img:null,lm:null,ai:null}, crops:null, regions:null, cmp:{}, res:null, slide:0, rp:0, saved:false, fit:null, docJ:null};
-const FLOW = ['cover','brief','pre', ...QS.map(q=>q.id), 'rw1', ...MOVES.map(m=>m.id), 'rw2', ...(TRIAL?[]:['ph1','ph2','ph3', ...PTS.map(p=>p.id), 'look', ...CMPS.map(c=>c.id), 'rw3']), 'inter','scan','result'];
+const FLOW = ['cover','brief','axes','pre', ...QS.map(q=>q.id), 'rw1', ...MOVES.map(m=>m.id), 'rw2', ...(TRIAL?[]:['ph1','ph2','ph3', ...PTS.map(p=>p.id), ...(CMPS.length>1?['look']:[]), ...CMPS.map(c=>c.id), 'rw3']), 'inter','scan','result'];
 const STAGES = ['問一問','動一動','比一比','看結果'];
-const STAGE_OF = n => n==='cover'||n==='brief'||n==='pre'?0 : n[0]==='Q'||n==='rw1'?1 : n[0]==='M'||n==='rw2'?2 : ['ph1','ph2','ph3','look','rw3'].includes(n)||n[0]==='P'||n[0]==='K'?3 : 4;
+const STAGE_OF = n => n==='cover'||n==='brief'||n==='pre'||n==='axes'?0 : n[0]==='Q'||n==='rw1'?1 : n[0]==='M'||n==='rw2'?2 : ['ph1','ph2','ph3','look','rw3'].includes(n)||n[0]==='P'||n[0]==='K'?3 : 4;
 const idc = id => S.doc ? `<span class="idchip">${id}</span>` : '';
 const RM = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 const F = d => `class="fade" style="animation-delay:${d}s"`;
@@ -119,6 +151,13 @@ const flipTag = frames => frames&&frames.length ? `<div class="flip" data-flip>$
 function startFlips(){ FLIPS.forEach(clearInterval); FLIPS=[]; document.querySelectorAll('[data-flip]').forEach(el=>{ const imgs=[...el.querySelectorAll('img')], dots=[...el.querySelectorAll('.fd i')], cap=el.querySelector('.cap'), caps=JSON.parse(cap.dataset.caps); let k=0; if(RM()||imgs.length<2) return; FLIPS.push(setInterval(()=>{ k=(k+1)%imgs.length; imgs.forEach((im,i)=>im.classList.toggle('on',i===k)); dots.forEach((d,i)=>d.classList.toggle('on',i===k)); cap.textContent=caps[k]; if(el.dataset.steps) el.parentElement.querySelectorAll('.bigsteps li').forEach((li,i)=>li.classList.toggle('on',i===k)); },el.dataset.steps?2600:2200)); }); }
 async function fillQP(){ const els=document.querySelectorAll('img[data-qp]'); if(!els.length) return; await demoP; els.forEach(el=>{ const d=JSON.parse(el.dataset.qp), u=d.src==='user'&&S.ph.img&&S.ph.lm; el.src=quadPhoto(u?S.ph.img:DEMO_IMG, u?S.ph.lm:DEMO_LM, d.qs, d.main, d.w||520, d.labels===false?false:LV); }); }
 const qpTag=(qs,main,opt={},cls='')=>`<img class="${cls}" data-qp='${JSON.stringify({qs,main,...opt}).replace(/'/g,'&#39;')}' alt="身體四個區塊的緊繃程度">`;
+async function fillPtEx(){ const els=document.querySelectorAll('img[data-ptex]'); if(!els.length) return; await demoP;
+  els.forEach(el=>{ const keys=el.dataset.ptex.split(','), L=DEMO_LM, Hb=L.heL[1]-L.earL[1], pts=keys.map(k=>L[k+'L']), pad=Hb*.07;
+    let x0=Math.min(...pts.map(q=>q[0]))-pad, x1=Math.max(...pts.map(q=>q[0]))+pad, y0=Math.min(...pts.map(q=>q[1]))-pad, y1=Math.max(...pts.map(q=>q[1]))+pad; if(keys.includes('ic')){ x1=L.icR[0]+pad; }
+    const box=fitBox([x0,y0,x1,y1],1), W=320, sc=W/(box[2]-box[0]), c=document.createElement('canvas'); c.width=W; c.height=Math.round((box[3]-box[1])*sc); const g=c.getContext('2d'); drawCrop(g,DEMO_IMG,box,W,c.height);
+    const P=q=>[(q[0]-box[0])*sc,(q[1]-box[1])*sc]; drawMLines(g,P,L,keys,W);
+    keys.forEach((k,i)=>(k==='ic'?['L','R']:['L']).forEach(sd=>{ const [x,y]=P(L[k+sd]); g.beginPath(); g.arc(x,y,11,0,7); g.fillStyle='#7a5638'; g.fill(); g.lineWidth=2; g.strokeStyle='#fff'; g.stroke(); g.fillStyle='#fff'; g.font='bold 13px sans-serif'; g.textAlign='center'; g.textBaseline='middle'; g.fillText(String(i+1),x,y+1); }));
+    el.src=c.toDataURL('image/jpeg',.88); }); }
 async function fillPtStrip(){ const els=document.querySelectorAll('img[data-pt]'); if(!els.length) return; await demoP; const Hb=DEMO_LM.heL[1]-DEMO_LM.earL[1];
   els.forEach(el=>{ const [x,y]=DEMO_LM[el.dataset.pt+'L'], sz=Hb*.13, c=document.createElement('canvas'); c.width=c.height=232; const g=c.getContext('2d'); g.drawImage(DEMO_IMG,x-sz/2,y-sz/2,sz,sz,0,0,232,232); el.src=c.toDataURL('image/jpeg',.85); }); }
 async function fillKnee(){ for(const el of document.querySelectorAll('img[data-kx]')) el.src=await kneeExample(el.dataset.kx); }
@@ -126,13 +165,13 @@ async function fillKnee(){ for(const el of document.querySelectorAll('img[data-k
 // ---------- 畫面 ----------
 function stageBar(){ const n=FLOW[S.i], cur=STAGE_OF(n); if(!cur||n==='scan'||n==='result') return ''; const inStage=FLOW.filter(x=>STAGE_OF(x)===cur), pos=inStage.indexOf(n); return `<div class="stages">${STAGES.map((s,k)=>{ const st=(k+1)<cur?'done':(k+1)===cur?'now':''; return `<div class="stg ${st}" style="--p:${Math.round(((pos+1)/inStage.length)*100)}%"><i></i>${s}</div>`; }).join('')}</div>`; }
 function note(t){ return S.doc&&t?`<div class="note"><span class="h">醫師檢視｜設計說明</span>${esc(t)}</div>`:''; }
-const NOBACK=['cover','scan','result','rw1','rw2','rw3'];
-const ansOf = () => ({a:S.a, mv:S.mv, cmp:S.crops?S.cmp:null, meas:S.crops&&S.ph.lm?measure(S.ph.lm):null});
+const NOBACK=['cover','scan','result'];
+const ansOf = () => ({a:S.a, mv:S.mv, cmp:S.crops?S.cmp:null, meas:S.crops&&S.ph.lm?measure(S.ph.lm):null, mz:S.crops&&S.ph.lm?measureCues(S.ph.lm):null});
 function render(){
   const n=FLOW[S.i];
   if(n==='inter'||n==='scan'||(n==='result'&&!S.res)) S.res=score(CFG, ansOf());
   if(n==='result') saveEntry();
-  const V={cover:vCover, brief:vBrief, pre:vPre, rw1:()=>vReward(1), rw2:()=>vReward(2), rw3:()=>vReward(3), ph1:vPh1, ph2:vPh2, ph3:vPh3, look:vLook, inter:vInter, scan:vScan, result:vResult};
+  const V={cover:vCover, brief:vBrief, pre:vPre, axes:vAxes, rw1:()=>vReward(1), rw2:()=>vReward(2), rw3:()=>vReward(3), ph1:vPh1, ph2:vPh2, ph3:vPh3, look:vLook, inter:vInter, scan:vScan, result:vResult};
   const body = V[n]?V[n]() : n[0]==='Q'?vQ(n) : n[0]==='M'?vMove(n) : n[0]==='K'?vPts(n) : vCmp(n);
   const on=S.snd&&AU.on, left=NOBACK.includes(n)?'<span>時空身體地圖・空間篇</span>':`<button class="bk" data-act="back">‹ 上一步</button>`;
   $('#app').innerHTML = `${PREVIEW?'<div class="pv">醫師預覽模式：正在使用你在後台編輯的設定</div>':''}<div class="top">${left}<div class="r"><button data-act="snd" aria-pressed="${on}">${on?'音樂 開':'音樂 關'}</button><button data-act="doc" aria-pressed="${S.doc}">醫師檢視</button></div></div>${stageBar()}${body}${n==='cover'?'<p class="foot">衛教內容僅供參考，個人狀況請由醫師判斷</p>':''}`;
@@ -169,6 +208,12 @@ function startHero(){ clearInterval(window._hero); const fig=$('#hfig'); if(!fig
     vt.classList.remove('on'); hl.classList.remove('on'); setTimeout(()=>{ vt.innerHTML=h.t.split('　').map(x=>`<b>${esc(x)}</b>`).join('')+`<span>${esc(h.s)}</span>`; hl.querySelector('em').textContent=h.n; hl.querySelector('small').textContent=String(idx+1).padStart(2,'0')+' ／ '+String(HERO.length).padStart(2,'0'); vt.classList.add('on'); hl.classList.add('on'); },RM()?0:500);
     cur=1-cur; k=(k+1)%HERO.length; };
   show(); if(!RM()) window._hero=setInterval(()=>{ if(!document.body.contains(fig)) return clearInterval(window._hero); show(); },4200); }
+function vAxes(){ const A=EX.axes, k=S.ax||0, it=A.items[k];
+  return `<div class="card"><span class="kicker">先認識「空間」</span><h2 class="mark">${esc(A.t)}</h2>
+  <div class="ax ax-${it.k}" id="ax"><div class="axfig"><img src="${it.k==='fb'?'img/tcm_side.jpg':'img/tcm_line.jpg'}" alt=""><i class="a1"></i><i class="a2"></i><b class="l1"></b><b class="l2"></b><svg class="rot" viewBox="0 0 100 60"><g class="rg r1"><ellipse cx="34" cy="30" rx="13" ry="5"/><path d="M47 30 l-5 -4 M47 30 l-5 3"/></g><g class="rg r2"><ellipse cx="66" cy="30" rx="13" ry="5"/><path d="M53 30 l5 -4 M53 30 l5 3"/></g><text x="34" y="46" text-anchor="middle">往內轉</text><text x="66" y="46" text-anchor="middle">往外轉</text></svg></div>
+    <div class="axtx"><div class="axname">${esc(it.name)}</div><p>${esc(it.d)}</p><span class="axbadge ${it.on?'on':''}">${it.on?'✓ 這一篇會看':'✗ 這一篇不看'}</span>${it.note?`<p class="muted sm">${esc(it.note)}</p>`:''}</div></div>
+  <div class="axdots">${A.items.map((x,i)=>`<button data-act="axgo" data-i="${i}" class="${i===k?'on':''} ${x.on?'yes':''}">${esc(x.name)}</button>`).join('')}</div>
+  ${k===A.items.length-1?`<p class="axend">${esc(A.end)}</p><button class="btn" data-act="next">我知道了</button>`:`<button class="btn" data-act="axnext">下一個方向 ›</button>`}</div>`; }
 function vPre(){ const P=EX.pre, v=S.a.struct;
   return `<div class="card"><span class="kicker">開始之前</span><h2 class="mark">${esc(P.t)}</h2><ol class="bigsteps pre">${P.items.map((t,i)=>`<li class="on" ${F(.1+i*.15)}><b>${i+1}</b>${esc(t)}</li>`).join('')}</ol>
     <h3 ${F(.6)}>${esc(P.ask)}</h3><div class="row" ${F(.7)}>${['有','沒有'].map(o=>`<button class="opt c" data-act="ans" data-q="struct" data-v="${o}" aria-pressed="${v===o}">${o}</button>`).join('')}</div></div>`; }
@@ -210,12 +255,13 @@ function vPh3(){ const sh=CFG.sources.photoShot; return `<div class="card"><span
   <img class="photo-r" src="${sh.img}" alt="" style="max-height:34vh;object-fit:cover"><p class="lead">${esc(sh.sub)}</p>
   <label class="btn" for="file">選這張截圖</label><input type="file" id="file" accept="image/*"><button class="btn ghost" data-act="demo">先用示範照片試試看</button>
   <p class="muted sm">照片只在你的手機裡，不會傳出去。</p><div id="phmsg"></div><button class="btn ghost small" data-act="skipphoto" style="align-self:center">這次先不拍照</button></div>`; }
-function vPts(id){ const p=PTS.find(x=>x.id===id), k=PTS.indexOf(p), ex=PT_DESC.filter(d=>p.keys.includes(d[0]));
+function vPts(id){ const p=PTS.find(x=>x.id===id), k=PTS.indexOf(p);
   return `<div class="card"><span class="kicker">比一比｜確認位置　${k+1} / ${PTS.length}</span><h2 class="mark">${esc(p.name)}的點，對嗎？${idc(p.id)}</h2>
   ${k===0&&S.ph.feetWarn?`<div class="warnbox">看起來腳尖往外（外八），腳跟那題可能不準。<div class="row" style="margin-top:6px"><button class="btn small" data-act="reshoot">兩腳平行再拍一次</button><button class="btn ghost small" data-act="feetok">先用這張</button></div></div>`:''}
   <div class="stagewrap"><canvas id="cv"></canvas></div>
-  <div class="ptex">${ex.map(([key,nm,d])=>`<figure><img data-pt="${key}" alt="${nm}的正確位置"><figcaption><b>${nm}</b>${esc(d)}</figcaption></figure>`).join('')}</div>
-  ${k===0?`<p class="muted sm">${S.ph.ai==='fail'?'電腦沒找到你的身體，請把點拖到對的地方。':'不對的話，用手指把點拖過去。'}</p>`:''}
+  <div class="ptex2"><img data-ptex="${p.keys.join(',')}" alt="正確位置範例"><ol>${p.keys.map((key,i)=>`<li><b>${i+1}. ${PT_NAME[key]}</b>${esc(MK_DESC[key])}</li>`).join('')}</ol></div>
+  ${p.keys.includes('hb')?`<div class="ex2"><figure><img src="img/heel_lines_ok.jpg" alt=""><figcaption>✓ 接成一直線</figcaption></figure><figure class="bad"><img src="img/heel_lines_out.jpg" alt=""><figcaption>✗ 折一個角＝往外倒</figcaption></figure></div>`:''}
+  <p class="muted sm">${esc(p.tip||'')}${k===0?' 點的位置不對，用手指拖過去。':''}</p>
   <button class="btn" data-act="ptok">對了，下一步</button></div>`; }
 function vLook(){ return `<div class="card"><span class="kicker">比一比｜先知道要看哪裡</span><h2 class="mark">等一下要比左右的 ${CMPS.length} 個地方</h2><div class="stagewrap"><canvas id="pv"></canvas></div>
   <div class="opts grid">${CMPS.map((c,i)=>`<div class="opt" style="cursor:default;padding:8px 12px"><b style="color:var(--brown)">${i+1}</b>${esc(c.name)}${idc(c.id)}</div>`).join('')}</div><button class="btn" data-act="next">開始比</button></div>`; }
@@ -229,7 +275,7 @@ function vInter(){ const SL=[
   `<img class="hero" src="img/tight_loose.jpg" alt="" ${F(0)}><h2 class="mark" ${F(.3)}>我們說的「空間」是什麼？</h2><p class="big" ${F(.5)}>穿太緊的外套，手就舉不起來。</p><p ${F(1)}>身體也一樣：哪裡太緊、轉不開，就是那裡的<b>空間不夠</b>。我們說的「空間」，就是<b>身體能不能鬆鬆地動</b>。</p><div class="quote" ${F(1.5)}>很像在穿寬鬆外衣的情況下換汗衫⋯但如果穿緊身衣就很難這麼做。<small>黃獻銘醫師</small></div>`,
   `<img class="hero" src="img/help_story.jpg" alt="" ${F(0)}><h2 class="mark" ${F(.3)}>痛的地方，不一定是源頭</h2><p class="big" ${F(.5)}>一個地方動不了，旁邊的地方就要多出力幫忙。</p><p ${F(1)}>比如左腳踝以前扭傷、轉不太開，走路時右腰就要多出力，久了反而是<b>右腰在痛</b>。真正要照顧的，是那個<b>動不了的地方</b>。</p>`], s=S.slide;
   return `<div class="card inter">${SL[s]}<div class="dots">${SL.map((_,i)=>`<i class="${i===s?'on':''}"></i>`).join('')}</div><button class="btn" data-act="slide" ${F(s===0?2.1:1.8)}>${s<SL.length-1?'下一頁':'開始分析我的身體地圖'}</button></div>`; }
-function vScan(){ const steps=['讀取你回答的身體故事','比對動作的左右感覺','對照照片上的 '+CMPS.length+' 個地方','算出四個區塊的分數','畫出你的身體地圖'];
+function vScan(){ const steps=['讀取你回答的身體故事','比對動作的左右感覺','量照片上 '+PTS.reduce((n,p)=>n+p.keys.length*2,0)+' 個點的角度和距離','算出四個區塊的分數','畫出你的身體地圖'];
   return `<div class="card scan"><span class="kicker">分析中</span><h2>正在整理你的身體地圖</h2><div class="scanimg"><img id="scanimg" alt=""><div class="grid"></div><i class="beam"></i></div><div class="pct mono" id="pct">0%</div><div class="bar"><i id="bar"></i></div><ul class="checks" id="checks">${steps.map(t=>`<li><i></i><span>${t}</span></li>`).join('')}</ul></div>`; }
 
 // ---------- 紀錄 ----------
@@ -259,18 +305,20 @@ function unitById(id){ return EX.units.find(u=>u.id===id)||EX.units[0]; }
 function reportPages(){
   const r=S.res, H=hist(), prevs=H.filter(e=>e.id!==S.entryId), hasPhoto=!!S.crops, Q=r.main?EX.quadrants[r.main]:null;
   const dots=n=>[0,1,2].map(i=>`<i class="${i<n?'on':''}"></i>`).join('');
-  const mv=r.main?Math.round(r.qs[r.main]*100):0, say=r.main?`你最緊繃的地方是<em>「${QN[r.main]}」</em>${lvChip(mv)}<br><span class="sm">${esc(Q.area)}。${esc(Q.say)}</span>`:esc(EX.none.say);
+  const lean=!r.main&&r.lean?r.lean:null, ties=lean?QUADS.filter(k=>Math.abs(r.qs[k]-r.qs[lean])<.02):[], mv=r.main?Math.round(r.qs[r.main]*100):0, say=lean?`分數最高的是<em>「${ties.map(k=>QN[k]).join('」和「')}」</em>${lvChip(Math.round(r.qs[lean]*100))}<br><span class="sm">不過回答、動作、照片指向不同的地方，所以先不下定論。建議 4 週後再做一次，或請醫師親自看看。</span>`:r.main?`你最緊繃的地方是<em>「${QN[r.main]}」</em>${lvChip(mv)}<br><span class="sm">${esc(Q.area)}。${esc(Q.say)}</span>`:esc(EX.none.say);
   const mainUnit=unitById(r.main?Q.unit:EX.none.unit), order=EX.unitOrder.map(x=>x==='*'?mainUnit:unitById(x)).filter((u,i,a)=>a.indexOf(u)===i);
   const stuck=MOVES.find(m=>{ const v=S.mv[m.id]; return v&&(v.side==='左邊'||v.side==='右邊'); })||MOVES[0];
   const cell=k=>{ const v=r.qs[k], a=Math.min(1,v/.8); const L=levelOf(Math.round(v*100),LV); return `<div class="${k===r.main?'hi':''}" style="background:${L.color};color:#fff"><b>${QN[k]}・${esc(L.name)}</b><span>${Math.round(v*100)}</span></div>`; };
   const P=[];
-  P.push(['一眼看懂',`<span class="kicker" ${F(0)}>一眼看懂</span><div ${F(.1)}>${qpTag(r.qs,r.main,{w:620,src:'user'},'mapimg')}${lvLegend()}</div>
+  P.push(['一眼看懂',`<span class="kicker" ${F(0)}>一眼看懂</span><div ${F(.1)}>${qpTag(r.qs,r.main||r.lean,{w:620,src:'user'},'mapimg')}${lvLegend()}</div>
     <p class="say" ${F(.35)}>${say}</p>${r.main?`<div class="sure" ${F(.6)}>${dots(r.nAgree)}<span>${r.nAgree>=3?'三個提示都這樣說':'三個提示裡有兩個這樣說'}</span></div>`:''}${S.a.struct==='有'?`<div class="warnbox" ${F(.7)}>${esc(EX.pre.caveat)}</div>`:''}${TRIAL?`<div class="warnbox" ${F(.7)}>試用版只用了回答和動作。完整版會加上一張背面照，看得更準。</div>`:''}<p class="muted sm" ${F(.75)}>${esc(EX.disclaimer)}往後翻，看為什麼、今天可以做什麼。</p>`]);
   if(prevs.length) P.push(['這段時間的變化',`<span class="kicker">這段時間的變化</span><h2 class="mark">你已經記錄 ${H.length} 次了</h2><div class="histrow">${H.slice(-6).map(e=>`<div class="hm ${e.id===S.entryId?'now':''}">${qpTag(qsOf(e),e.m,{w:150,labels:false})}<span>${esc(e.d)}${e.id===S.entryId?'（今天）':''}${e.demo?'＊':''}</span></div>`).join('')}</div>${chartSVG(H.slice(-6))}<p>${changeSentence(H.slice(-6))}</p>${H.some(e=>e.demo)?'<p class="muted sm">＊示範紀錄</p>':''}`]);
   P.push(['為什麼這樣說',`<span class="kicker">為什麼這樣說</span><h2 class="mark">你今天找到 ${r.votes.length} 個提示</h2><div class="row" style="align-items:flex-start"><div style="flex:1">${hasPhoto?'<img id="annot" alt="" style="width:100%;border-radius:6px;max-height:46vh;object-fit:contain;background:#2a2420">':qpTag(r.qs,r.main,{w:300,labels:false})}</div>
     <div style="flex:1.1;display:flex;flex-direction:column;gap:8px"><div class="quad2">${QUADS.map(cell).join('')}</div><div class="ui sm" style="display:flex;flex-direction:column;gap:4px">${r.votes.map(v=>`<span>・${esc(v.label)}</span>`).join('')||'這次沒有明確的提示'}${S.a.scar&&S.a.scar!=='沒有'?`<span class="muted">・${esc(S.a.scar)}有開刀的疤（不計分，醫師會參考）</span>`:''}</div></div></div>
     <p class="muted sm">至少 ${CFG.logic.minAgree} 種提示（回答、動作、照片）指向同一邊，才會說「這邊比較緊繃」。輕微不一樣很正常。</p>`]);
   const finds=[];
+  if(hasPhoto&&CFG.logic.measure&&CFG.logic.measure.enabled){ const M=CFG.logic.measure, G=gradeMeasure(M, measureCues(S.ph.lm)), CK={U8:['nk','st','uo'],U1:['st','nk'],U3:['um','ol','fm'],U4a:['fm','wc','hc'],L5:['ic'],L2:['pi','po','ko'],L3:['pi','po','a1','a2'],L1:['a1','a2','hb']};
+    Object.entries(G).forEach(([id,gr])=>{ const c=M.cues[id], sd=gr.L>0?'L':gr.R>0?'R':null; finds.push(`<div class="ccard"><img data-cue="${CK[id].join(',')}" alt=""><div class="tx"><span class="kicker">電腦量｜${esc(c.name)}${idc(id)}</span><p>${esc(c.see)}</p><p>${sd?`量到<b>${SIDE_TXT(sd)}</b>比較明顯。${esc(c.mean)}`:'兩邊差不多，很好。'}</p><p class="muted sm">${esc(gr.why)}</p></div></div>`); }); }
   if(hasPhoto) CMPS.forEach(c=>{ const res=r.cmpRes[c.key], cr=S.crops[c.key]; const said=res==='L'||res==='R'?`你看出是<b>${SIDE_TXT(res)}</b>比較明顯，看得很仔細！${esc(c.mean)}`:res==='='?'你覺得左右差不多，代表這裡目前還很輕鬆。':'這一題沒有作答。';
     finds.push(`<div class="ccard">${c.type==='pair'?`<div class="ev"><img src="${cr.L}" alt=""><img src="${cr.R}" alt=""></div>`:`<img src="${cr.one}" alt="">`}<div class="tx"><span class="kicker">${esc(c.name)}${idc(c.id)}</span><p>${esc(c.see)}</p><p>${said}</p></div></div>`); });
   MOVES.forEach(m=>{ const v=S.mv[m.id]||{}, s=v.side==='左邊'?'L':v.side==='右邊'?'R':null; finds.push(`<div class="ccard">${m.frames&&m.frames.length?`<img src="${m.frames[m.frames.length-1][0]}" alt="">`:''}<div class="tx"><span class="kicker">${esc(m.name)}${idc(m.id)}</span><p>${esc(m.teach)}</p><p>${s?`你覺得<b>${SIDE_TXT(s)}</b>${esc(EX.feelText[v.feel]||'比較吃力。')}`:'你覺得兩邊差不多，很好。'}</p></div></div>`); });
@@ -301,9 +349,9 @@ function vResult(){ const P=reportPages(); S.rp=Math.min(S.rp,P.length-1); const
   return `<div class="card rp"><div class="rphead"><span>${new Date().toLocaleDateString('zh-TW')}｜第 ${hist().length} 次紀錄</span><span>${S.rp+1} / ${P.length}　${esc(title)}</span></div>${html}</div>
   <div class="rpnav"><div class="in"><button class="btn ghost" data-act="rpprev" ${S.rp===0?'disabled':''}>‹ 上一頁</button><div class="dots">${P.map((_,i)=>`<i class="${i===S.rp?'on':''}"></i>`).join('')}</div>${S.rp<P.length-1?`<button class="btn" data-act="rpnext">下一頁 ›</button>`:`<button class="btn" data-act="restart">再做一次</button>`}</div></div>`; }
 // =========== 分享系統：4 張分享卡、回顧影片、回顧連結（仿翻前學院的分享＋重播） ===========
-function shareData(){ const r=S.res; return {d:new Date().toLocaleDateString('zh-TW'), m:r.main, s:QUADS.map(k=>Math.round(r.qs[k]*100)), n:r.nAgree, v:r.votes.filter(x=>x.src!=='電腦量').slice(0,6).map(x=>[x.label, x.side+x.half]), p:(S.a.pain||[]).map(z=>(z[0]==='L'?'左':'右')+z.slice(2)), f:S.a.fixed||''}; }
+function shareData(){ const r=S.res; return {d:new Date().toLocaleDateString('zh-TW'), m:r.main, l:r.main?null:r.lean, s:QUADS.map(k=>Math.round(r.qs[k]*100)), n:r.nAgree, v:r.votes.filter(x=>x.src!=='電腦量').slice(0,6).map(x=>[x.label, x.side+x.half]), p:(S.a.pain||[]).map(z=>(z[0]==='L'?'左':'右')+z.slice(2)), f:S.a.fixed||''}; }
 const shareLink = data => location.origin+location.pathname+'#r='+b64e(JSON.stringify(data||shareData()));
-function shareText(){ const d=shareData(), mi=d.m?QUADS.indexOf(d.m):-1; return `我的身體地圖 🌿\n${d.m?'最緊繃：'+QN[d.m]+' '+d.s[mi]+' 分（'+levelOf(d.s[mi],LV).name+'）':'四個區塊都還平均'}\n${QUADS.map((k,i)=>QN[k]+' '+d.s[i]).join('｜')}${d.p.length?'\n常痠痛：'+d.p.slice(0,3).join('、'):''}\n\n▶ 看我的回顧影片：${shareLink(d)}`; }
+function shareText(){ const d=shareData(), mi=d.m?QUADS.indexOf(d.m):-1; return `我的身體地圖 🌿\n${d.m?'最緊繃：'+QN[d.m]+' '+d.s[mi]+' 分（'+levelOf(d.s[mi],LV).name+'）':d.l?'分數最高：'+QN[d.l]+' '+d.s[QUADS.indexOf(d.l)]+' 分（還不確定）':'四個區塊出力比較平均'}\n${QUADS.map((k,i)=>QN[k]+' '+d.s[i]).join('｜')}${d.p.length?'\n常痠痛：'+d.p.slice(0,3).join('、'):''}\n\n▶ 看我的回顧影片：${shareLink(d)}`; }
 async function makeCards(d, useUser){
   await demoP; const W=1080, H=1920, img=useUser&&S.ph.img?S.ph.img:DEMO_IMG, lm=useUser&&S.ph.lm?S.ph.lm:DEMO_LM, qs={LU:d.s[0]/100,RU:d.s[1]/100,LD:d.s[2]/100,RD:d.s[3]/100}, Q=d.m?EX.quadrants[d.m]:null, out=[];
   const card=()=>{ const c=document.createElement('canvas'); c.width=W; c.height=H; const g=c.getContext('2d'); g.fillStyle='#ece6dd'; g.fillRect(0,0,W,H);
@@ -315,7 +363,7 @@ async function makeCards(d, useUser){
   // 1 封面＋身體地圖
   { const [c,g]=card(); g.font='600 92px "Noto Serif TC",serif'; g.fillStyle='#2b2724'; g.fillText('我的身體地圖',130,300); g.font='32px "Noto Sans TC",sans-serif'; g.fillStyle='#7c7064'; g.fillText(d.d,132,360);
     const qp=await imgFromSrc(quadPhoto(img,lm,qs,d.m,800,LV,true)), bh=1110, bw=Math.min(860,bh*qp.width/qp.height), dh=bw*qp.height/qp.width; g.drawImage(qp,(W-bw)/2,420+(bh-dh)/2,bw,dh);
-    g.fillStyle='#2b2724'; g.font='600 64px "Noto Serif TC",serif'; g.textAlign='center'; g.fillText(d.m?'最緊繃的是「'+QN[d.m]+'」':'四個區塊都還平均',W/2,1640); g.font='38px "Noto Serif TC",serif'; g.fillStyle='#4a423b'; if(Q) g.fillText(Q.area,W/2,1710); g.textAlign='left'; out.push(c.toDataURL('image/jpeg',.9)); }
+    g.fillStyle='#2b2724'; g.font='600 64px "Noto Serif TC",serif'; g.textAlign='center'; g.fillText(d.m?'最緊繃的是「'+QN[d.m]+'」':d.l?'分數最高：「'+QN[d.l]+'」':'四個區塊出力比較平均',W/2,1640); g.font='38px "Noto Serif TC",serif'; g.fillStyle='#4a423b'; if(Q) g.fillText(Q.area,W/2,1710); g.textAlign='left'; out.push(c.toDataURL('image/jpeg',.9)); }
   // 2 我的分數
   { const [c,g]=card(); g.font='600 80px "Noto Serif TC",serif'; g.fillStyle='#2b2724'; g.fillText('我的身體分數',130,330); g.font='34px "Noto Sans TC",sans-serif'; g.fillStyle='#7c7064'; g.fillText('四區互相比較，分數越高越緊繃',132,400);
     QUADS.forEach((k,i)=>{ const x=130+(i%2)*420, y=480+Math.floor(i/2)*330, v=d.s[i], L=levelOf(v,LV); g.fillStyle=L.color; g.fillRect(x,y,400,300); if(k===d.m){ g.lineWidth=10; g.strokeStyle='#2b2724'; g.strokeRect(x+5,y+5,390,290); }
@@ -357,11 +405,13 @@ function friendData(){ const m=location.hash.match(/#r=([A-Za-z0-9_-]+)/); if(!m
 async function friendView(d){ Tele.ev('share_open'); $('#app').innerHTML=`<div class="card" style="text-align:center"><span class="kicker">家人分享給你的</span><h2>身體地圖回顧</h2><div class="friend" id="fr"><div class="spin" style="margin-top:40%"></div></div>
   <p class="muted sm">照片是示意圖，不是本人。</p><button class="btn" data-act="friendgo">我也來看看自己的身體地圖（約 5 分鐘）</button><p class="foot">衛教內容僅供參考，個人狀況請由醫師判斷</p></div>`;
   const cards=await makeCards(d,false), fr=$('#fr'); fr.innerHTML=cards.map((u,i)=>`<img src="${u}" class="${i===0?'on':''}" alt="">`).join(''); const ims=[...fr.querySelectorAll('img')]; let k=0; setInterval(()=>{ k=(k+1)%ims.length; ims.forEach((im,i)=>im.classList.toggle('on',i===k)); },2800); }
+async function fillCue(){ const els=document.querySelectorAll('img[data-cue]'); if(!els.length||!S.ph.img) return; const {img,lm}=S.ph;
+  els.forEach(el=>{ const keys=el.dataset.cue.split(','), box=groupBox(lm,keys), W=360, sc=W/(box[2]-box[0]), c=document.createElement('canvas'); c.width=W; c.height=Math.round((box[3]-box[1])*sc); const g=c.getContext('2d'); drawCrop(g,img,box,W,c.height);
+    const P=q=>[(q[0]-box[0])*sc,(q[1]-box[1])*sc]; drawMLines(g,P,lm,keys,W); keys.forEach(k=>['L','R'].forEach(sd=>{ const q=lm[k+sd]; if(!q) return; const [x,y]=P(q); g.beginPath(); g.arc(x,y,4,0,7); g.fillStyle='#fff'; g.fill(); })); el.src=c.toDataURL('image/jpeg',.86); }); }
 function annotate(){ const el=$('#annot'); if(!el||!S.ph.img) return; const {img,lm}=S.ph, r=S.res, [x0,y0,x1,y1]=fitBox(bodyBox(lm,1e9,1e9),.6), W=600, sc=W/(x1-x0), H=Math.round((y1-y0)*sc), c=document.createElement('canvas'); c.width=W; c.height=H; const g=c.getContext('2d');
   drawCrop(g,img,[x0,y0,x1,y1],W,H); const P=p=>[(p[0]-x0)*sc,(p[1]-y0)*sc]; g.fillStyle='rgba(30,22,16,.3)'; g.fillRect(0,0,W,H); const midX=(P(lm.shL)[0]+P(lm.shR)[0]+P(lm.hipL)[0]+P(lm.hipR)[0])/4, hipY=(P(lm.hipL)[1]+P(lm.hipR)[1])/2;
   if(r.main){ const L=r.main[0]==='L', U=r.main[1]==='U'; g.fillStyle='rgba(165,129,79,.3)'; g.fillRect(L?0:midX,U?0:hipY,L?midX:W-midX,U?hipY:H-hipY); }
-  g.strokeStyle='rgba(255,255,255,.85)'; g.lineWidth=2; [['shL','shR'],['hipL','hipR'],['shL','wrL'],['shR','wrR'],['hipL','anL'],['hipR','anR']].forEach(([a,b])=>{ const A=P(lm[a]),B=P(lm[b]); g.beginPath(); g.moveTo(A[0],A[1]); g.lineTo(B[0],B[1]); g.stroke(); });
-  PT_KEYS.forEach(k=>{ const [x,y]=P(lm[k]); g.beginPath(); g.arc(x,y,4,0,7); g.fillStyle='#fff'; g.fill(); });
+  drawMLines(g,P,lm,null,W); PT_KEYS.filter(k=>MK.includes(k.slice(0,-1))).forEach(k=>{ const [x,y]=P(lm[k]); g.beginPath(); g.arc(x,y,3.5,0,7); g.fillStyle='#fff'; g.fill(); });
   CMPS.forEach(cc=>{ const res=r.cmpRes[cc.key]; S.regions[cc.key].forEach(([x,y,sz],j)=>{ const on=res===(j===0?'L':'R'), [px,py]=P([x,y]); g.beginPath(); g.arc(px,py,sz*.42*sc,0,7); g.lineWidth=on?3:1.2; g.strokeStyle=on?'#e0b57a':'rgba(255,255,255,.5)'; if(!on) g.setLineDash([4,4]); g.stroke(); g.setLineDash([]); }); }); el.src=c.toDataURL('image/jpeg',.88); }
 
 // ---------- 回報（直接送到 Benson 信箱） ----------
@@ -384,8 +434,8 @@ document.addEventListener('click', async e=>{
   if(act==='role'){ Tele.setRole(b.dataset.v); render(); return; }
   if(act==='start'){ S.t0=Date.now(); if(!Tele.role) Tele.setRole('一般試用'); Tele.ev('start'); if(S.snd) musicStart(); next(); return; }
   if(act==='next') return next();
-  if(act==='back'){ Tele.ev('back_btn'); return back(); }
-  if(act==='restart'){ Tele.ev('restart'); Object.assign(S,{i:0,t0:null,a:{},mv:{},ph:{mode:null,img:null,lm:null,ai:null},crops:null,regions:null,cmp:{},res:null,slide:0,rp:0,saved:false,fit:null,docJ:null,cards:null,zt:0,pz:'all',vidFile:null,vidUrl:null,vidBusy:false,vidFail:false}); render(); return; }
+  if(act==='back'){ Tele.ev('back_btn'); if(FLOW[S.i]==='inter'&&S.slide>0){ S.slide--; return render(); } if(FLOW[S.i]==='axes'&&S.ax>0){ S.ax--; return render(); } return back(); }
+  if(act==='restart'){ Tele.ev('restart'); Object.assign(S,{i:0,t0:null,a:{},mv:{},ph:{mode:null,img:null,lm:null,ai:null},crops:null,regions:null,cmp:{},res:null,slide:0,rp:0,saved:false,fit:null,docJ:null,cards:null,zt:0,pz:'all',ax:0,vidFile:null,vidUrl:null,vidBusy:false,vidFail:false}); render(); return; }
   if(act==='zone'){ const z=b.dataset.z, a=S.a.pain||[]; S.a.pain=a.includes(z)?a.filter(x=>x!==z):[...a,z]; tick(); render(); return; }
   if(act==='nopain'){ S.a.pain=[]; Tele.ev('answer',{k:'pain',d:[]}); praise(next); return; }
   if(act==='qnext'){ Tele.ev('answer',{k:'pain',d:S.a.pain}); praise(next); return; }
@@ -400,6 +450,8 @@ document.addEventListener('click', async e=>{
   if(act==='ptok'){ Tele.ev('answer',{k:FLOW[S.i]}); if(FLOW[S.i]===PTS[PTS.length-1].id){ const m=makeCrops(S.ph.img,S.ph.lm); S.crops=m.crops; S.regions=m.regions; S.cmp={}; } tick(); next(); return; }
   if(act==='confirmPts'){ const m=makeCrops(S.ph.img,S.ph.lm); S.crops=m.crops; S.regions=m.regions; S.cmp={}; next(); return; }
   if(act==='cmp'){ S.cmp[b.dataset.k]=b.dataset.v; Tele.ev('answer',{k:b.dataset.k,d:b.dataset.v}); render(); praise(next); return; }
+  if(act==='axnext'){ S.ax=(S.ax||0)+1; render(); return; }
+  if(act==='axgo'){ S.ax=+b.dataset.i; render(); return; }
   if(act==='slide'){ if(S.slide<2){ S.slide++; render(); } else next(); return; }
   if(act==='rpnext'){ S.rp++; render(); return; }
   if(act==='rpprev'){ S.rp=Math.max(0,S.rp-1); render(); return; }
@@ -438,15 +490,15 @@ document.addEventListener('change', async e=>{ if(e.target.id!=='file'||!e.targe
   const c=await fileToCanvas(e.target.files[0]), d=await detect(c); S.ph={mode:'upload', img:c, lm:d.lm, ai:d.ai, feetWarn:!!(d.feet&&d.feet.vis>.5&&(d.feet.outL+d.feet.outR)/2>25)}; if(S.ph.feetWarn) Tele.ev('feet_out'); Tele.ev('ai',{k:d.ai}); S.i=FLOW.indexOf(PTS[0].id); render(); });
 function toast(t){ let el=$('#toast'); if(!el){ el=document.createElement('div'); el.id='toast'; el.className='toast'; document.body.appendChild(el); } el.textContent=t; el.hidden=false; clearTimeout(window._tt); window._tt=setTimeout(()=>el.hidden=true,2400); }
 function after(n){
-  fillQP(); fillDC(); startFlips(); fillKnee();
+  fillQP(); fillDC(); startFlips(); fillKnee(); if(n==='axes') setTimeout(()=>{ const a=$('#ax'); a&&a.classList.add('go'); },60);
   if(n==='cover') startHero(); else clearInterval(window._hero);
-  if(n[0]==='K'){ const p=PTS.find(x=>x.id===n); drawPointsOn($('#cv'), S.ph.img, S.ph.lm, ()=>Tele.ev('drag'), p.keys); fillPtStrip(); }
+  if(n[0]==='K'){ const p=PTS.find(x=>x.id===n); drawPointsOn($('#cv'), S.ph.img, S.ph.lm, ()=>Tele.ev('drag'), p.keys); fillPtEx(); }
   if(n==='look'){ const m=makeCrops(S.ph.img,S.ph.lm); S.regions=m.regions; const cv=$('#pv'), img=S.ph.img, box=partBox(S.ph.lm,'all'), [x0,y0,x1,y1]=box, W=Math.min(900,Math.round(x1-x0)), sc=W/(x1-x0), H=Math.round((y1-y0)*sc); cv.width=W; cv.height=H; const g=cv.getContext('2d'); drawCrop(g,img,box,W,H);
     CMPS.forEach((c,i)=>S.regions[c.key].forEach(([x,y,sz])=>{ const px=(x-x0)*sc, py=(y-y0)*sc, rr=sz*.45*sc; g.beginPath(); g.arc(px,py,rr,0,7); g.lineWidth=Math.max(3,W/160); g.strokeStyle='#7a5638'; g.stroke(); const r=Math.max(18,W/26), bx=px+rr*.72, by=py-rr*.72; g.beginPath(); g.arc(bx,by,r,0,7); g.fillStyle='#7a5638'; g.fill(); g.fillStyle='#fff'; g.font=`${Math.round(r*1.2)}px sans-serif`; g.textAlign='center'; g.textBaseline='middle'; g.fillText(String(i+1),bx,by); g.textAlign='left'; g.textBaseline='alphabetic'; })); }
   if(n==='rw1'||n==='rw2'||n==='rw3'){ petals(22); chime(true); const k={rw1:1,rw2:2,rw3:3}[n], C=2*Math.PI*40; setTimeout(()=>{ const f=$('#ringfg'); if(f) f.style.strokeDashoffset=C*(1-k/3); },150); }
   if(n==='inter'&&S.slide===0){ petals(26); chime(true); }
   if(n==='scan') runScan();
-  if(n==='result'){ annotate(); buildShare(); if(S.rp===0){ petals(18); chime(true); } }
+  if(n==='result'){ annotate(); fillCue(); buildShare(); if(S.rp===0){ petals(18); chime(true); } }
 }
 async function runScan(){ await demoP; const u=S.ph.img&&S.ph.lm, img=u?S.ph.img:DEMO_IMG, lm=u?S.ph.lm:DEMO_LM, [x0,y0,x1,y1]=bodyBox(lm,img.width,img.height), W=360, sc=W/(x1-x0), H=Math.round((y1-y0)*sc), c=document.createElement('canvas'); c.width=W; c.height=H; const g=c.getContext('2d');
   g.drawImage(img,x0,y0,x1-x0,y1-y0,0,0,W,H); g.fillStyle='rgba(30,22,16,.35)'; g.fillRect(0,0,W,H); const P=p=>[(p[0]-x0)*sc,(p[1]-y0)*sc], el=$('#scanimg'); if(el) el.src=c.toDataURL('image/jpeg',.85);

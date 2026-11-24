@@ -102,7 +102,7 @@ function vSrc(){ const s=CFG.sources;
       ${(s.photoSteps||[]).map((st,j)=>fld('步驟 '+(j+1),'sources.photoSteps.'+j+'.1')).join('')}
       ${s.stance?fld('標準站姿（正確）','sources.stance.t')+fld('不標準的樣子','sources.stance.bad')+fld('站姿小提醒','sources.stance.tip','area'):''}${fld('截圖頁標題','sources.photoShot.t')}${fld('截圖頁說明','sources.photoShot.sub','area')}</div>
     <div class="sec"><h2>確認點位（學員必經，每步放大一組點）</h2>
-      ${(s.points||[]).map((pt,i)=>{ const P='sources.points.'+i; return `<div class="item ${pt.enabled?'':'off'}"><div class="ih"><b>${pt.id}　${esc(pt.name)}</b>${tog(P+'.enabled')}</div>${fld('這一步的名稱',P+'.name')}<p class="muted sm ui">確認的點：${pt.keys.map(k=>PT_NAME[k]).join('、')}（左右各一）</p></div>`; }).join('')}</div>
+      ${(s.points||[]).map((pt,i)=>{ const P='sources.points.'+i; return `<div class="item ${pt.enabled?'':'off'}"><div class="ih"><b>${pt.id}　${esc(pt.name)}</b>${tog(P+'.enabled')}</div>${fld('這一步的名稱',P+'.name')}<p class="muted sm ui">確認的點：${pt.keys.map(k=>PT_NAME[k]).join('、')}（左右各一）。點位定義來自《點選說明 逐題確認稿》，要改點的位置請寫在下方需求欄。</p>${fld('這一步的說明（電腦量什麼）',P+'.tip','area')}</div>`; }).join('')}</div>
     <div class="sec"><h2>照片視診</h2><p class="muted sm ui">${esc(s.photoNotes)}</p>
     ${s.compares.map((c,i)=>{ const P='sources.compares.'+i; return `<div class="item ${c.enabled?'':'off'}"><div class="ih"><b>${c.id}　${esc(c.name)}</b>${tog(P+'.enabled')}</div>
       ${fld('問學員',P+'.ask')}${fld('怎麼看',P+'.how','area')}${fld('算在',P+'.half','half')}${fld('權重',P+'.w','num')}${fld('教學：看哪裡',P+'.see','area')}${fld('教學：代表什麼',P+'.mean','area')}${fld('備註／依據',P+'.note','area')}</div>`; }).join('')}
@@ -114,6 +114,10 @@ function vLogic(){ const L=CFG.logic;
     ${Object.keys(L.feelWeight).map(k=>fld('「'+k+'」','logic.feelWeight.'+k,'num',{step:0.1,max:3})).join('')}
     <h2>電腦自動量的角度</h2><div class="inl">${tog('logic.aiMeasure.enabled','使用電腦量的肩膀、骨盆傾斜')}</div>
     ${fld('權重','logic.aiMeasure.w','num',{step:0.1,max:3,hint:'照片量角度誤差大，建議小'})}${fld('角度門檻（度）','logic.aiMeasure.minDeg','num',{step:0.5,max:15})}
+    <h2>照片量測（依象限判讀法 v0.4）</h2><div class="inl">${tog('logic.measure.enabled','使用照片點位量測')}</div>
+    ${fld('左右比 ≥ 多少給 2 分','logic.measure.ratio2','num',{step:0.05,max:5})}${fld('左右比 ≥ 多少給 1 分','logic.measure.ratio1','num',{step:0.05,max:5})}
+    ${fld('傾斜 ≥ 幾度給 2 分','logic.measure.tilt2','num',{step:0.5,max:20})}${fld('傾斜 ≥ 幾度給 1 分','logic.measure.tilt1','num',{step:0.5,max:20})}${fld('沒有參照物時，傾斜最多給幾分','logic.measure.tiltMax','num',{step:1,max:2})}
+    ${Object.entries(L.measure.cues).map(([id,c])=>`<div class="item ${c.on?'':'off'}"><div class="ih"><b>${id}　${esc(c.name)}</b>${tog('logic.measure.cues.'+id+'.on')}</div>${fld('權重','logic.measure.cues.'+id+'.w','num',{step:0.5,max:3})}${id!=='U1'?fld('算在','logic.measure.cues.'+id+'.half','half'):'<p class="muted sm ui">U1 依 U8 分流：高的那邊頸肩接近直角算上半身，否則算下半身。</p>'}${fld('教學：看哪裡','logic.measure.cues.'+id+'.see','area')}${fld('教學：代表什麼','logic.measure.cues.'+id+'.mean','area')}</div>`).join('')}
     <h2>判定門檻</h2>${fld('最低緊繃分數','logic.minScore','num',{step:0.05,max:1,hint:'0.2 = 20 分'})}${fld('至少幾種來源同向','logic.minAgree','num',{step:1,min:1,max:3,hint:'回答、動作、照片三種'})}
     ${fld('想調整但這裡做不到的邏輯（寫下來）','logic.note','area')}</div>
   <div class="sec sticky"><h2>目前的規則</h2><pre class="rule" id="rules">${esc(rulesText(CFG))}</pre></div></div>`; }
@@ -122,7 +126,8 @@ function vExp(){ const E=CFG.explain, unitSel=(p,v)=>`<label class="f"><span>優
   <div class="grid2"><div class="sec"><h2>四個區塊的結論</h2>
     ${QUADS.map(q=>{ const P='explain.quadrants.'+q; return `<div class="item"><div class="ih"><b>最緊繃＝${QN[q]}</b></div>${fld('白話的區域',P+'.area')}${fld('一句話結論',P+'.say','area')}${unitSel(P+'.unit',E.quadrants[q].unit)}${fld('今天可以先做',P+'.todo','area')}</div>`; }).join('')}
     <div class="item"><div class="ih"><b>不明顯（沒有通過判定）</b></div>${fld('一句話結論','explain.none.say','area')}${unitSel('explain.none.unit',E.none.unit)}${fld('今天可以先做','explain.none.todo','area')}</div></div>
-  <div style="display:flex;flex-direction:column;gap:14px"><div class="sec"><h2>使用前先知道（學員必經）</h2>${fld('標題','explain.pre.t')}${fld('三件事（一行一件）','explain.pre.items','lines')}${fld('篩選問題','explain.pre.ask','area')}${fld('答「有」時報告上的提醒','explain.pre.caveat','area')}</div>
+  <div style="display:flex;flex-direction:column;gap:14px"><div class="sec"><h2>身體空間的四個方向（學員必經）</h2>${fld('標題','explain.axes.t')}${(E.axes&&E.axes.items||[]).map((x,i)=>fld(x.name+'（'+(x.on?'這篇會看':'這篇不看')+'）','explain.axes.items.'+i+'.d')).join('')}${fld('最後一句','explain.axes.end','area')}</div>
+    <div class="sec"><h2>使用前先知道（學員必經）</h2>${fld('標題','explain.pre.t')}${fld('三件事（一行一件）','explain.pre.items','lines')}${fld('篩選問題','explain.pre.ask','area')}${fld('答「有」時報告上的提醒','explain.pre.caveat','area')}</div>
     <div class="sec"><h2>回應問診（今天可以做的事）</h2>${fld('有舊傷時（{area}＝區塊）','explain.injuryTodo','area')}${fld('有開刀疤時（{scar}＝位置）','explain.scarTodo','area')}</div>
     <div class="sec"><h2>分數等級（四區互相比較：較少／中等／偏多）</h2>
     ${(E.levels||[]).map((L,i)=>`<div class="item"><div class="ih"><b><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:${L.color};margin-right:6px"></span>${i?E.levels[i-1].max+1:0}–${L.max} 分</b></div>${fld('上限分數','explain.levels.'+i+'.max','num',{step:1,max:100})}${fld('名稱','explain.levels.'+i+'.name')}${fld('一句話',`explain.levels.${i}.say`)}</div>`).join('')}</div>
@@ -150,7 +155,7 @@ function vTest(){
     <div class="kpi"><div>測試人數<b>${tests.length}</b></div><div>一致<b>${agree}</b></div><div>一致率<b>${tests.length?Math.round(agree/tests.length*100)+'%':'—'}</b></div><div>11/9 過關線<b>70%</b></div></div>
     <div style="overflow-x:auto"><table class="tbl"><tr><th>代號</th><th>時間</th><th>工具判斷</th><th>醫師判斷</th><th>結果</th><th>重算後</th><th>備註</th></tr>
     ${tests.map(t=>`<tr><td>${esc(t.code)}</td><td>${esc(t.when)}</td><td>${esc(t.tool)}</td><td>${esc(t.doc)}</td><td class="${t.agree?'ok':'bad'}">${t.agree?'一致':'不一致'}</td><td>${t.re?`<span class="${t.re.agree?'ok':'bad'}">${esc(t.re.tool)}｜${t.re.agree?'一致':'不一致'}</span>`:''}</td><td>${esc(t.note)}</td></tr>`).join('')||'<tr><td colspan="7" class="muted">還沒有測試紀錄</td></tr>'}</table></div></div>`; }
-function testAns(){ return {a:T.a, mv:T.mv, cmp:T.img?T.cmp:null, meas:T.img&&T.lm?measure(T.lm):null}; }
+function testAns(){ return {a:T.a, mv:T.mv, cmp:T.img?T.cmp:null, meas:T.img&&T.lm?measure(T.lm):null, mz:T.img&&T.lm?measureCues(T.lm):null}; }
 async function renderTestResult(){ const box=$('#tres'); if(!box) return; const r=score(CFG, testAns()); await demoP;
   const img=T.img||DEMO_IMG, lm=T.img?T.lm:DEMO_LM;
   box.innerHTML = `<h2>這位受試者的結果</h2><div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap"><img src="${quadPhoto(img,lm,r.qs,r.main,360,CFG.explain.levels)}" style="width:170px;border-radius:6px" alt=""><div class="ui"><div class="muted sm">工具判斷</div><div style="font-size:26px;font-family:var(--fs)">${r.main?QN[r.main]:'不明顯'}</div>${r.second?`<div class="muted sm">第二：${QN[r.second]}</div>`:''}</div></div>
@@ -168,10 +173,10 @@ function vSend(){ const changes=diffCfg(D, CFG);
     <button class="btn" data-act="send" ${changes.length?'':'disabled'}>送出給 PressPlay</button>
     <div class="inl"><button class="btn ghost small" data-act="download">下載設定檔</button><label class="btn ghost small" for="cfgfile">讀入設定檔</label><input type="file" id="cfgfile" accept="application/json"><button class="btn ghost small" data-act="reset">全部還原成預設</button></div></div></div>`; }
 // ---------- 變更摘要 ----------
-const LBL={safety:'安全提醒',items:'三件事',caveat:'提醒',ask:'問學員',tip:'小提醒',max:'上限分數',t:'題目',sub:'說明',o:'選項',name:'名稱',ask:'問學員',how:'怎麼看',half:'算在',w:'權重',teach:'教學文字',see:'教學：看哪裡',mean:'教學：代表什麼',enabled:'啟用',note:'備註',area:'白話區域',say:'一句話結論',unit:'優先章節',todo:'今天可以先做',ch:'章節',why:'為什麼看',mode:'計分方式',minScore:'最低緊繃分數',minAgree:'至少幾種來源同向',minDeg:'角度門檻',photoRequest:'照片點位需求',nightMove:'睡前動作說明',disclaimer:'不是診斷的提醒'};
+const LBL={tip:'說明',ratio2:'給2分的左右比',ratio1:'給1分的左右比',tilt2:'給2分的傾斜',tilt1:'給1分的傾斜',tiltMax:'無參照最多給',on:'啟用',see:'看哪裡',mean:'代表什麼',end:'最後一句',safety:'安全提醒',items:'三件事',caveat:'提醒',ask:'問學員',tip:'小提醒',max:'上限分數',t:'題目',sub:'說明',o:'選項',name:'名稱',ask:'問學員',how:'怎麼看',half:'算在',w:'權重',teach:'教學文字',see:'教學：看哪裡',mean:'教學：代表什麼',enabled:'啟用',note:'備註',area:'白話區域',say:'一句話結論',unit:'優先章節',todo:'今天可以先做',ch:'章節',why:'為什麼看',mode:'計分方式',minScore:'最低緊繃分數',minAgree:'至少幾種來源同向',minDeg:'角度門檻',photoRequest:'照片點位需求',nightMove:'睡前動作說明',disclaimer:'不是診斷的提醒'};
 function flat(o, pre, out){ if(Array.isArray(o)&&o.length&&typeof o[0]==='object'&&!Array.isArray(o[0])&&o[0].id){ o.forEach(x=>flat(x, pre+'〔'+x.id+'〕', out)); return out; }
   if(o&&typeof o==='object'&&!Array.isArray(o)){ Object.keys(o).forEach(k=>flat(o[k], pre?pre+'.'+k:k, out)); return out; } out[pre]=o; return out; }
-const SEC={pre:'使用前先知道',stance:'站姿',injuryTodo:'舊傷建議',scarTodo:'疤痕建議',points:'確認點位',photoSteps:'拍照步驟',photoShot:'截圖頁',levels:'分數等級',questions:'問診',moves:'動作',compares:'照片',units:'章節',quadrants:'結論',feelWeight:'感覺分數',aiMeasure:'電腦量角度',fixedTodo:'姿勢建議',feelText:'感覺說明',score:'計分',map:'對應',none:'不明顯',frames:'步驟'};
+const SEC={measure:'照片量測',cues:'量測項目',axes:'四個方向',points:'確認點位',pre:'使用前先知道',stance:'站姿',injuryTodo:'舊傷建議',scarTodo:'疤痕建議',points:'確認點位',photoSteps:'拍照步驟',photoShot:'截圖頁',levels:'分數等級',questions:'問診',moves:'動作',compares:'照片',units:'章節',quadrants:'結論',feelWeight:'感覺分數',aiMeasure:'電腦量角度',fixedTodo:'姿勢建議',feelText:'感覺說明',score:'計分',map:'對應',none:'不明顯',frames:'步驟'};
 const nice = p => p.replace(/^(sources|logic|explain)\./,'').split('.').map(k=>LBL[k]||SEC[k]||QN[k]||(/^\d+$/.test(k)?'':k)).filter(Boolean).join(' ').replace(/\s+〔/g,'〔').trim();
 const show = v => Array.isArray(v)?v.map(x=>Array.isArray(x)?x[1]:x&&typeof x==='object'?(x.name!=null?x.name+(x.max!=null?'（到 '+x.max+' 分）':''):JSON.stringify(x)):x).join('／'):typeof v==='boolean'?(v?'是':'否'):v==null?'（無）':String(v);
 function diffCfg(a,b){ const A=flat(a,'',{}), B=flat(b,'',{}), keys=[...new Set([...Object.keys(A),...Object.keys(B)])].filter(k=>k!=='version'), out=[];
