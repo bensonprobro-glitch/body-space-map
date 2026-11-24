@@ -66,7 +66,8 @@ function migrateCfg(c){ if(!c||!c.sources) return c; const qs=c.sources.question
   ['pre','injuryTodo','scarTodo'].forEach(k=>{ if(c.explain&&c.explain[k]==null) c.explain[k]=clone(D.explain[k]); }); if(!c.sources.stance) c.sources.stance=clone(D.sources.stance);
   (c.sources.compares||[]).forEach(cp=>{ const d=D.sources.compares.find(x=>x.key===cp.key); if(cp.key==='L2'&&cp.ex&&cp.ex.some(e=>/knee_/.test(e[0]))){ delete cp.ex; Object.assign(cp,{ask:d.ask,how:d.how,see:d.see,mean:d.mean}); } if(cp.key==='U4'&&!cp.ex&&d.ex){ cp.ex=clone(d.ex); Object.assign(cp,{ask:d.ask,how:d.how,see:d.see,mean:d.mean}); } });
   if(!c.logic.measure){ c.logic.measure=clone(D.logic.measure); c.logic.aiMeasure.enabled=false; c.sources.points=clone(D.sources.points); (c.sources.compares||[]).forEach(cp=>{ const d=D.sources.compares.find(x=>x.key===cp.key); if(d) cp.enabled=d.enabled; }); }
-  if(c.explain&&!c.explain.axes) c.explain.axes=clone(D.explain.axes);
+  if(c.explain&&(!c.explain.axes||!c.explain.axes.intro)) c.explain.axes=clone(D.explain.axes);
+  (c.sources.photoSteps||[]).forEach(st=>{ if(st[0]==='img/feet_par.jpg') st[0]='img/rec_stand.jpg'; });
   (c.sources.moves||[]).forEach(m=>{ const d=D.sources.moves.find(x=>x.id===m.id); if(m.id==='M3'&&d&&(m.safety==null||m.frames.length<4)){ m.safety=d.safety; m.frames=clone(d.frames); m.ask=d.ask; } });
   (c.sources.compares||[]).forEach(cp=>{ if(cp.ex) cp.ex.forEach(e=>{ if(String(e[0]).startsWith('gen:')||/knee_(level|slant)/.test(e[0])){ cp.ex=[['img/knee_compare.jpg','範例：左邊斜、右邊平']]; } }); }); return c; }
 function levelOf(v, levels){ const L=levels||(window.DEFAULT_CONFIG.explain.levels); return L.find(l=>v<=l.max)||L[L.length-1]; }
@@ -210,13 +211,13 @@ function drawPointsOn(cv, img, lm, onDrag, part='all'){
   const P=k=>[(lm[k][0]-x0)*sc,(lm[k][1]-y0)*sc], r=grp?Math.max(6,W/52):Math.max(9,W/48);
   g.lineWidth=Math.max(2,W/300); g.strokeStyle='rgba(122,86,56,.85)';
   drawMLines(g,(p)=>[(p[0]-x0)*sc,(p[1]-y0)*sc],lm,grp,W);
-  const fs=Math.round(W/(grp?26:part==='all'?16:20)); g.font=`500 ${fs}px "Noto Sans TC",sans-serif`;
+  const fs=Math.round(W/(grp?36:part==='all'?16:20)); g.font=`500 ${fs}px "Noto Sans TC",sans-serif`;
   const LB=[]; KEYS.forEach(k=>{ const [x,y]=P(k), v=lm[k][2]; if(x<-r||y<-r||x>W+r||y>H+r) return; const col=v<.5?'#b1463a':'#7a5638'; if(grp){ g.beginPath(); g.arc(x,y,r,0,7); g.lineWidth=Math.max(2.5,W/260); g.strokeStyle='#fff'; g.stroke(); g.beginPath(); g.arc(x,y,r,0,7); g.lineWidth=Math.max(1.5,W/420); g.strokeStyle=col; g.stroke(); g.beginPath(); g.arc(x,y,Math.max(2,r*.28),0,7); g.fillStyle=col; g.fill(); } else { g.beginPath(); g.arc(x,y,r,0,7); g.fillStyle=col; g.fill(); g.lineWidth=3; g.strokeStyle='#fff'; g.stroke(); }
     const nm=grp?String(grp.indexOf(k.replace(/[LR]$/,''))+1):PT_NAME[k.replace(/[LR]$/,'')], left=k.endsWith('L'), tw=g.measureText(nm).width; const off=grp?r+W/40:r+10; let tx=left?x-off-tw:x+off; if(tx<6||tx+tw>W-6) tx=left?x+off:x-off-tw; LB.push({x,y,ly:y,tx,tw,nm,side:tx<x}); });
   [true,false].forEach(sd=>{ const L=LB.filter(b=>b.side===sd).sort((a,b)=>a.y-b.y), gap=fs*1.5; for(let it=0;it<4;it++) for(let q=1;q<L.length;q++){ const d=L[q].ly-L[q-1].ly; if(d<gap){ const m=(gap-d)/2; L[q-1].ly-=m; L[q].ly+=m; } } });
   LB.forEach(b=>{ if(grp||Math.abs(b.ly-b.y)>3){ g.strokeStyle='rgba(255,255,255,.9)'; g.lineWidth=2; g.beginPath(); g.moveTo(b.x,b.y); g.lineTo(b.side?b.tx+b.tw+5:b.tx-5,b.ly); g.stroke(); }
     g.font=`500 ${fs}px "Noto Sans TC",sans-serif`;
-    if(grp){ const rr=fs*.75, cx=b.tx+b.tw/2; g.beginPath(); g.arc(cx,b.ly,rr,0,7); g.fillStyle='#7a5638'; g.fill(); g.lineWidth=2; g.strokeStyle='#fff'; g.stroke(); g.fillStyle='#fff'; g.textAlign='center'; g.fillText(b.nm,cx,b.ly+fs*.36); g.textAlign='left'; } else { g.fillStyle='rgba(43,32,24,.78)'; g.fillRect(b.tx-5,b.ly-fs*.72,b.tw+10,fs*1.36); g.fillStyle='#fff'; g.fillText(b.nm,b.tx,b.ly+fs*.38); } });
+    if(grp){ const rr=fs*.68, cx=b.tx+b.tw/2; g.beginPath(); g.arc(cx,b.ly,rr,0,7); g.fillStyle='#7a5638'; g.fill(); g.lineWidth=2; g.strokeStyle='#fff'; g.stroke(); g.fillStyle='#fff'; g.textAlign='center'; g.fillText(b.nm,cx,b.ly+fs*.36); g.textAlign='left'; } else { g.fillStyle='rgba(43,32,24,.78)'; g.fillRect(b.tx-5,b.ly-fs*.72,b.tw+10,fs*1.36); g.fillStyle='#fff'; g.fillText(b.nm,b.tx,b.ly+fs*.38); } });
   if(!onDrag) return; let drag=null; const pos=ev=>{ const b=cv.getBoundingClientRect(); return [x0+(ev.clientX-b.left)*(x1-x0)/b.width, y0+(ev.clientY-b.top)*(y1-y0)/b.height, (x1-x0)/b.width]; };
   cv.onpointerdown=ev=>{ const [x,y,s]=pos(ev); let best=null,bd=1e9; KEYS.forEach(k=>{ const d=Math.hypot(lm[k][0]-x,lm[k][1]-y); if(d<bd){bd=d;best=k;} }); if(bd<(grp?60:36)*s){ drag=best; cv.setPointerCapture(ev.pointerId); ev.preventDefault(); } };
   cv.onpointermove=ev=>{ if(!drag) return; const [x,y]=pos(ev); lm[drag]=[x,y,1]; drawPointsOn(cv,img,lm,null,part); }; cv.onpointerup=()=>{ if(drag){ drag=null; onDrag&&onDrag(); } };

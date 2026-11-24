@@ -103,6 +103,26 @@ p.hint{font-size:18px;margin:2px 0}
 .axend{font-size:17px;text-align:center;margin:4px 0}
 .ptex2{display:grid;grid-template-columns:42% 1fr;gap:10px;align-items:start}.ptex2 img{width:100%;border-radius:8px}
 .ptex2 ol{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}.ptex2 li{font-size:14px;line-height:1.45;color:var(--muted)}.ptex2 li b{display:block;font-size:16px;color:var(--ink)}
+
+.axhero{display:grid;grid-template-columns:1fr 92px;gap:6px;align-items:stretch}
+.axhero .fig{position:relative;height:min(44vh,380px);aspect-ratio:2/3;margin:0 auto;-webkit-mask-image:radial-gradient(ellipse 80% 85% at 50% 50%,#000 65%,transparent 100%);mask-image:radial-gradient(ellipse 80% 85% at 50% 50%,#000 65%,transparent 100%)}
+.axhero .fig img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;mix-blend-mode:multiply;filter:saturate(.6);opacity:0;transition:opacity 1s}
+.axhero.p0 .b,.axhero.p1 .b,.axhero.p3 .b,.axhero.p2 .s{opacity:1}
+.axhero svg{position:absolute;inset:0;width:100%;height:100%;fill:none;stroke:#a8553a;stroke-width:.9;stroke-linecap:round;stroke-linejoin:round}
+.axhero svg .d{stroke-dasharray:2 2;stroke-width:.5}.axhero svg text{fill:#7a5638;stroke:none;font-size:6px;font-family:var(--fs);font-weight:600}
+.axhero .g{opacity:0;transition:opacity .8s}.axhero.p0 .ud,.axhero.p1 .lr,.axhero.p2 .fb,.axhero.p3 .io{opacity:1}
+.axhero .io ellipse{stroke-dasharray:3 2;animation:axd 1.4s linear infinite}
+.axhero .vt{writing-mode:vertical-rl;display:block;white-space:nowrap;padding-top:6px;position:relative}.axhero .vt .w{display:block;position:relative;height:7.5em;width:44px}
+.axhero .vt b{position:absolute;top:0;right:0;font-family:var(--fs);font-weight:600;font-size:30px;letter-spacing:.35em;color:var(--ink);opacity:0;transform:translateY(6px);transition:opacity .7s,transform .7s}
+.axhero.p0 .v0,.axhero.p1 .v1,.axhero.p2 .v2,.axhero.p3 .v3{opacity:1;transform:none}
+.axhero .vt span{display:block;margin-top:0;margin-right:12px;font-size:12px;letter-spacing:.18em;color:var(--muted);border-right:1px solid var(--line);padding-right:6px}
+.axprog{display:flex;justify-content:center;gap:6px}.axprog i{width:6px;height:6px;border-radius:50%;background:var(--line)}.axprog i.on{background:var(--brown);width:18px;border-radius:3px}
+.axfin{display:grid;grid-template-columns:1fr 26px 1fr;align-items:center;gap:4px}
+.axfin .c{background:#efe9df;border-radius:10px;padding:10px;text-align:center;display:flex;flex-direction:column;gap:2px}
+.axfin .c.on{background:#e9dfcf;outline:1.5px solid var(--brown)}
+.axfin .im{height:min(24vh,190px);overflow:hidden}.axfin .im img{height:100%;mix-blend-mode:multiply;filter:saturate(.6)}
+.axfin b{font-family:var(--fs);font-size:18px;color:var(--ink)}.axfin span{font-size:15px;color:var(--brown);letter-spacing:.1em}.axfin p{font-size:14px;line-height:1.5;margin:4px 0 0;text-align:left;color:var(--muted)}
+.axfin .plus{font-size:24px;color:var(--brown);text-align:center}
 </style>
 </head>
 <body>
@@ -208,12 +228,26 @@ function startHero(){ clearInterval(window._hero); const fig=$('#hfig'); if(!fig
     vt.classList.remove('on'); hl.classList.remove('on'); setTimeout(()=>{ vt.innerHTML=h.t.split('　').map(x=>`<b>${esc(x)}</b>`).join('')+`<span>${esc(h.s)}</span>`; hl.querySelector('em').textContent=h.n; hl.querySelector('small').textContent=String(idx+1).padStart(2,'0')+' ／ '+String(HERO.length).padStart(2,'0'); vt.classList.add('on'); hl.classList.add('on'); },RM()?0:500);
     cur=1-cur; k=(k+1)%HERO.length; };
   show(); if(!RM()) window._hero=setInterval(()=>{ if(!document.body.contains(fig)) return clearInterval(window._hero); show(); },4200); }
-function vAxes(){ const A=EX.axes, k=S.ax||0, it=A.items[k];
+function vAxes(){ const A=EX.axes, n=A.items.length, k=S.ax||0, last=n+1, dots=`<div class="axprog">${Array.from({length:n+2},(_,i)=>`<i class="${i===k?'on':''}"></i>`).join('')}</div>`;
+  if(k===0) return `<div class="card"><span class="kicker" ${F(0)}>先認識「空間」</span><h2 class="mark" ${F(.1)}>${esc(A.intro.t)}</h2>
+    <div class="axhero p0" id="axh" ${F(.2)}><div class="fig"><img class="b" src="img/tcm_line.jpg" alt=""><img class="s" src="img/tcm_side.jpg" alt="">
+      <svg viewBox="0 0 100 150" preserveAspectRatio="none"><g class="g ud"><path d="M90 18 V132 M86 24 L90 18 L94 24 M86 126 L90 132 L94 126"/><path class="d" d="M8 72 H92"/><text x="84" y="14">上</text><text x="84" y="142">下</text></g>
+        <g class="g lr"><path d="M10 58 H90 M16 54 L10 58 L16 62 M84 54 L90 58 L84 62"/><path class="d" d="M50 6 V146"/><text x="6" y="52">左</text><text x="88" y="52">右</text></g>
+        <g class="g fb"><path d="M22 60 H78 M28 56 L22 60 L28 64 M72 56 L78 60 L72 64"/><text x="16" y="54">前</text><text x="78" y="54">後</text></g>
+        <g class="g io"><ellipse cx="41" cy="94" rx="9" ry="3"/><ellipse cx="59" cy="94" rx="9" ry="3"/><text x="28" y="106">內轉</text><text x="58" y="106">外轉</text></g></svg></div>
+      <div class="vt"><span class="w"><b class="v0">上下</b><b class="v1">左右</b><b class="v2">前後</b><b class="v3">內外</b></span><span>${esc(A.intro.s)}</span></div></div>
+    <p class="lead" ${F(.5)}>${esc(A.intro.body)}</p>${dots}<button class="btn" data-act="axnext" ${F(.7)}>看看這四組方向 ›</button></div>`;
+  if(k===last) return `<div class="card"><span class="kicker">先認識「空間」</span><h2 class="mark">${esc(A.final.t)}</h2>
+    <div class="axfin"><div class="c on" ${F(.1)}><div class="im"><img src="img/tcm_line.jpg" alt=""></div><b>這一篇</b><span>上下・左右</span><p>${esc(A.final.a)}</p></div><div class="plus" ${F(.35)}>＋</div>
+      <div class="c" ${F(.5)}><div class="im"><img src="img/tcm_side.jpg" alt=""></div><b>課程裡</b><span>前後・內外</span><p>${esc(A.final.b)}</p></div></div>
+    <p class="axend" ${F(.8)}>${esc(A.final.c)}</p>${dots}<button class="btn" data-act="next" ${F(1)}>開始我的探索</button></div>`;
+  const it=A.items[k-1];
   return `<div class="card"><span class="kicker">先認識「空間」</span><h2 class="mark">${esc(A.t)}</h2>
   <div class="ax ax-${it.k}" id="ax"><div class="axfig"><img src="${it.k==='fb'?'img/tcm_side.jpg':'img/tcm_line.jpg'}" alt=""><i class="a1"></i><i class="a2"></i><b class="l1"></b><b class="l2"></b><svg class="rot" viewBox="0 0 100 60"><g class="rg r1"><ellipse cx="34" cy="30" rx="13" ry="5"/><path d="M47 30 l-5 -4 M47 30 l-5 3"/></g><g class="rg r2"><ellipse cx="66" cy="30" rx="13" ry="5"/><path d="M53 30 l5 -4 M53 30 l5 3"/></g><text x="34" y="46" text-anchor="middle">往內轉</text><text x="66" y="46" text-anchor="middle">往外轉</text></svg></div>
-    <div class="axtx"><div class="axname">${esc(it.name)}</div><p>${esc(it.d)}</p><span class="axbadge ${it.on?'on':''}">${it.on?'✓ 這一篇會看':'✗ 這一篇不看'}</span>${it.note?`<p class="muted sm">${esc(it.note)}</p>`:''}</div></div>
-  <div class="axdots">${A.items.map((x,i)=>`<button data-act="axgo" data-i="${i}" class="${i===k?'on':''} ${x.on?'yes':''}">${esc(x.name)}</button>`).join('')}</div>
-  ${k===A.items.length-1?`<p class="axend">${esc(A.end)}</p><button class="btn" data-act="next">我知道了</button>`:`<button class="btn" data-act="axnext">下一個方向 ›</button>`}</div>`; }
+    <div class="axtx"><div class="axname">${esc(it.name)}</div><p>${esc(it.d)}</p><span class="axbadge ${it.on?'on':''}">${it.on?'✓ 這一篇會看':'→ 課程裡會教'}</span>${it.note?`<p class="muted sm">${esc(it.note)}</p>`:''}</div></div>
+  <div class="axdots">${A.items.map((x,i)=>`<button data-act="axgo" data-i="${i+1}" class="${i+1===k?'on':''} ${x.on?'yes':''}">${esc(x.name)}</button>`).join('')}</div>
+  ${dots}<button class="btn" data-act="axnext">${k===n?'所以這一篇…':'下一組方向'} ›</button></div>`; }
+function startAxHero(){ clearInterval(window._axh); const h=$('#axh'); if(!h) return; let p=0; if(RM()) return; window._axh=setInterval(()=>{ if(!document.body.contains(h)) return clearInterval(window._axh); p=(p+1)%4; h.className='axhero p'+p; },2000); }
 function vPre(){ const P=EX.pre, v=S.a.struct;
   return `<div class="card"><span class="kicker">開始之前</span><h2 class="mark">${esc(P.t)}</h2><ol class="bigsteps pre">${P.items.map((t,i)=>`<li class="on" ${F(.1+i*.15)}><b>${i+1}</b>${esc(t)}</li>`).join('')}</ol>
     <h3 ${F(.6)}>${esc(P.ask)}</h3><div class="row" ${F(.7)}>${['有','沒有'].map(o=>`<button class="opt c" data-act="ans" data-q="struct" data-v="${o}" aria-pressed="${v===o}">${o}</button>`).join('')}</div></div>`; }
@@ -490,7 +524,7 @@ document.addEventListener('change', async e=>{ if(e.target.id!=='file'||!e.targe
   const c=await fileToCanvas(e.target.files[0]), d=await detect(c); S.ph={mode:'upload', img:c, lm:d.lm, ai:d.ai, feetWarn:!!(d.feet&&d.feet.vis>.5&&(d.feet.outL+d.feet.outR)/2>25)}; if(S.ph.feetWarn) Tele.ev('feet_out'); Tele.ev('ai',{k:d.ai}); S.i=FLOW.indexOf(PTS[0].id); render(); });
 function toast(t){ let el=$('#toast'); if(!el){ el=document.createElement('div'); el.id='toast'; el.className='toast'; document.body.appendChild(el); } el.textContent=t; el.hidden=false; clearTimeout(window._tt); window._tt=setTimeout(()=>el.hidden=true,2400); }
 function after(n){
-  fillQP(); fillDC(); startFlips(); fillKnee(); if(n==='axes') setTimeout(()=>{ const a=$('#ax'); a&&a.classList.add('go'); },60);
+  fillQP(); fillDC(); startFlips(); fillKnee(); if(n==='axes'){ setTimeout(()=>{ const a=$('#ax'); a&&a.classList.add('go'); },60); startAxHero(); }
   if(n==='cover') startHero(); else clearInterval(window._hero);
   if(n[0]==='K'){ const p=PTS.find(x=>x.id===n); drawPointsOn($('#cv'), S.ph.img, S.ph.lm, ()=>Tele.ev('drag'), p.keys); fillPtEx(); }
   if(n==='look'){ const m=makeCrops(S.ph.img,S.ph.lm); S.regions=m.regions; const cv=$('#pv'), img=S.ph.img, box=partBox(S.ph.lm,'all'), [x0,y0,x1,y1]=box, W=Math.min(900,Math.round(x1-x0)), sc=W/(x1-x0), H=Math.round((y1-y0)*sc); cv.width=W; cv.height=H; const g=cv.getContext('2d'); drawCrop(g,img,box,W,H);

@@ -4,7 +4,7 @@
 // =====================================================================
 window.BACKEND = 'https://script.google.com/macros/s/AKfycbz8lEGJFReE5NFtCD-TPk5BOZ6q5McjiMcM2KiPZIcuFl-YCtWTg0tIO89gZBuQdIlc/exec';
 window.DEFAULT_CONFIG = {
-  version: 'v1.3',
+  version: 'v1.4',
   sources: {
     questions: [
       {id:'Q1a', enabled:true, key:'pain', type:'bodymap', zone:0, t:'上半身，哪裡常痠痛？', sub:'點圓圈，可以點很多個。', score:{mode:'none'},
@@ -32,7 +32,7 @@ window.DEFAULT_CONFIG = {
       {id:'M3', enabled:true, name:'單腳站', half:'D', w:1, timer:true, frames:[['img/m3s1.jpg','① 站在牆邊，一手輕輕扶牆'],['img/m3s2.jpg','② 抬起左腳，先扶著站穩'],['img/m3s3.jpg','③ 手離開牆，數到 10'],['img/m3s4.jpg','④ 換抬右腳，一樣手離牆數到 10']],
        safety:'旁邊一定要有牆或椅子，晃了就馬上扶回去。', ask:'手離開牆以後，站在哪一隻腳上比較會晃？', teach:'單腳站看的是身體的地基穩不穩。比較會晃的那一腳，那一邊的腳、膝蓋、屁股比較緊繃。', note:'11/24 黃醫師：抬腳後手要離開牆，再看穩定還是會晃。'}
     ],
-    photoSteps: [['img/rec1.jpg','按下錄影'],['img/feet_par.jpg','站在線上，兩腳平行，全身放鬆'],['img/rec3.jpg','回頭檢查，確定有拍到全身']],
+    photoSteps: [['img/rec1.jpg','按下錄影'],['img/rec_stand.jpg','站在線上，兩腳平行，全身放鬆'],['img/rec3.jpg','回頭檢查，確定有拍到全身']],
     stance: {t:'兩腳平行，和肩膀差不多寬', bad:'外八（腳尖往外）不準', ok:'img/feet_par.jpg', no:'img/feet_out.jpg', tip:'找地板的線或貼一條膠帶，兩腳內側都跟線平行。', note:'11/24 黃醫師：兩腳內側平行（太極平行步），外八會把落差縮小，照片就看不準。寬度（肩寬或髖寬）待確認。'},
     photoShot: {img:'img/shot.jpg', t:'截一張圖', sub:'打開剛剛的影片，停在站好不動的那一刻，截圖。'},
     points: [
@@ -85,7 +85,9 @@ window.DEFAULT_CONFIG = {
       RD:{area:'右腳、右膝蓋、右邊屁股', say:'這一帶一直在幫身體多出力。', unit:'U3', todo:'站著的時候，兩隻腳平均出力，不要老是靠在右腳上。'}
     },
     none: {say:'四個區塊出力比較平均，沒有哪一區特別突出。', unit:'U1', todo:'繼續保持不讓身體停在同一個姿勢太久。'},
-    axes: {t:'身體的空間，有四個方向', items:[
+    axes: {intro:{t:'你的身體，是一個立體的空間', s:'四組方向，撐起一個立體的身體', body:'身體不是一張平面的圖。骨頭、肌肉、筋膜，在上下、左右、前後、內外四組方向上彼此牽動、互相讓位。哪一個方向的空間被用掉了，身體就會在別的地方找補。'},
+      final:{t:'一次完整的身體結構探索', a:'先看上下、左右，大概認識自己的身體偏向哪裡。', b:'黃醫師會帶你看前後、內外，一層一層往深處走。', c:'兩者合起來，才是一次完整的身體結構探索。'},
+      t:'這四組方向，各是什麼？', items:[
       {k:'ud', name:'上下', d:'以骨盆為界，上半身和下半身', on:true},
       {k:'lr', name:'左右', d:'身體的左半邊和右半邊', on:true},
       {k:'fb', name:'前後', d:'胸口那一面和背的那一面', on:false},
