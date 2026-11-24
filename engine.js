@@ -19,6 +19,10 @@ const PREVIEW_KEY = 'sk_cfg_preview';
 function migrateCfg(c){ if(!c||!c.sources) return c; const qs=c.sources.questions, i=qs.findIndex(q=>q.type==='bodymap'&&q.zone==null);
   if(i>=0){ const def=window.DEFAULT_CONFIG.sources.questions.filter(q=>q.type==='bodymap'); qs.splice(i,1,...clone(def)); }
   const D=window.DEFAULT_CONFIG; ['points','photoSteps','photoShot'].forEach(k=>{ if(!c.sources[k]) c.sources[k]=clone(D.sources[k]); }); if(c.explain&&!c.explain.levels) c.explain.levels=clone(D.explain.levels);
+  if(c.explain&&c.explain.levels&&c.explain.levels[0].name==='還好') c.explain.levels=clone(D.explain.levels);
+  ['pre','injuryTodo','scarTodo'].forEach(k=>{ if(c.explain&&c.explain[k]==null) c.explain[k]=clone(D.explain[k]); }); if(!c.sources.stance) c.sources.stance=clone(D.sources.stance);
+  (c.sources.compares||[]).forEach(cp=>{ const d=D.sources.compares.find(x=>x.key===cp.key); if(cp.key==='L2'&&cp.ex&&cp.ex.some(e=>/knee_/.test(e[0]))){ delete cp.ex; Object.assign(cp,{ask:d.ask,how:d.how,see:d.see,mean:d.mean}); } if(cp.key==='U4'&&!cp.ex&&d.ex){ cp.ex=clone(d.ex); Object.assign(cp,{ask:d.ask,how:d.how,see:d.see,mean:d.mean}); } });
+  (c.sources.moves||[]).forEach(m=>{ const d=D.sources.moves.find(x=>x.id===m.id); if(m.id==='M3'&&d&&m.safety==null){ m.safety=d.safety; m.frames=clone(d.frames); m.ask=d.ask; } });
   (c.sources.compares||[]).forEach(cp=>{ if(cp.ex) cp.ex.forEach(e=>{ if(String(e[0]).startsWith('gen:')||/knee_(level|slant)/.test(e[0])){ cp.ex=[['img/knee_compare.jpg','範例：左邊斜、右邊平']]; } }); }); return c; }
 function levelOf(v, levels){ const L=levels||(window.DEFAULT_CONFIG.explain.levels); return L.find(l=>v<=l.max)||L[L.length-1]; }
 function loadCfg(){ const q=new URLSearchParams(location.search); if(q.get('preview')==='1'){ const c=ls(PREVIEW_KEY); if(c&&c.sources) return {cfg:migrateCfg(c), preview:true}; } return {cfg:clone(window.DEFAULT_CONFIG), preview:false}; }
@@ -141,8 +145,9 @@ async function fileToCanvas(file){ const im=await imgFromSrc(URL.createObjectURL
 async function detect(c){
   try{ const pose=await withTimeout(getPose(),45000), out=pose.detect(c), p=out.landmarks&&out.landmarks[0]; if(!p) throw new Error('no person');
     const P=i=>[p[i].x*c.width,p[i].y*c.height,p[i].visibility??1], pair=(a,b)=>{ const A=P(a),B=P(b); return A[0]<=B[0]?[A,B]:[B,A]; };
+    const [toeL,toeR]=pair(31,32), [hL0,hR0]=pair(29,30), ang=(t,h)=>Math.atan2(t[0]-h[0], Math.max(1,h[1]-t[1]))*180/Math.PI, outL=-ang(toeL,hL0), outR=ang(toeR,hR0), fv=Math.min(toeL[2],toeR[2],hL0[2],hR0[2]);
     const [shL,shR]=pair(11,12),[earL,earR]=pair(7,8),[wrL,wrR]=pair(15,16),[idxL,idxR]=pair(19,20),[hipL,hipR]=pair(23,24),[knL,knR]=pair(25,26),[anL,anR]=pair(27,28),[heL,heR]=pair(29,30);
-    return {lm:{earL,earR,shL,shR,wrL,wrR,idxL,idxR,hipL,hipR,knL,knR,anL,anR,heL,heR}, ai:'ok'};
+    return {lm:{earL,earR,shL,shR,wrL,wrR,idxL,idxR,hipL,hipR,knL,knR,anL,anR,heL,heR}, ai:'ok', feet:{outL,outR,vis:fv}};
   }catch(err){ const W=c.width,H=c.height,cx=W/2,top=H*.06,h=H*.89,at=(dx,fy)=>[cx+dx*h,top+fy*h,.3];
     return {lm:{earL:at(-.03,.09),earR:at(.03,.09),shL:at(-.09,.19),shR:at(.09,.19),wrL:at(-.1,.47),wrR:at(.1,.47),idxL:at(-.1,.53),idxR:at(.1,.53),hipL:at(-.06,.5),hipR:at(.06,.5),knL:at(-.045,.72),knR:at(.045,.72),anL:at(-.04,.93),anR:at(.04,.93),heL:at(-.04,.96),heR:at(.04,.96)}, ai:'fail'}; }
 }

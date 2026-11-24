@@ -4,7 +4,7 @@
 // =====================================================================
 window.BACKEND = 'https://script.google.com/macros/s/AKfycbz8lEGJFReE5NFtCD-TPk5BOZ6q5McjiMcM2KiPZIcuFl-YCtWTg0tIO89gZBuQdIlc/exec';
 window.DEFAULT_CONFIG = {
-  version: 'v1.0',
+  version: 'v1.2',
   sources: {
     questions: [
       {id:'Q1a', enabled:true, key:'pain', type:'bodymap', zone:0, t:'上半身，哪裡常痠痛？', sub:'點圓圈，可以點很多個。', score:{mode:'none'},
@@ -29,10 +29,11 @@ window.DEFAULT_CONFIG = {
       {id:'M2', enabled:true, name:'兩手舉高', half:'U', w:1, frames:[['img/m2a.jpg','① 站好，手放下'],['img/m2b.jpg','② 兩手從旁邊往上舉'],['img/move_raise.jpg','③ 舉到最高，貼近耳朵']],
        compare:[['img/move_raise.jpg','兩邊都舉得上去'],['img/m2bad.jpg','一邊舉不上去，肩膀聳起來']],
        ask:'哪隻手比較舉不上去？', teach:'手舉不上去、肩膀跟著聳，代表那一邊的肩膀太緊，只好用聳肩來幫忙。', note:'示意動作，待醫師替換或確認。'},
-      {id:'M3', enabled:true, name:'單腳站', half:'D', w:1, timer:true, frames:[['img/m3a.jpg','① 一手扶牆'],['img/move_stand.jpg','② 抬左腳，數到 10'],['img/m3b.jpg','③ 換抬右腳，數到 10']],
-       ask:'哪隻腳站比較會晃？', teach:'單腳站看的是身體的地基穩不穩。比較會晃的那一腳，那一邊的腳、膝蓋、屁股比較緊繃。', note:'示意動作，待醫師替換或確認。'}
+      {id:'M3', enabled:true, name:'單腳站', half:'D', w:1, timer:true, frames:[['img/m3a.jpg','① 先一手扶牆'],['img/m3_free.jpg','② 抬左腳，手離開牆，數到 10'],['img/m3_free2.jpg','③ 換抬右腳，手離開牆，數到 10']],
+       safety:'旁邊一定要有牆或椅子，晃了就馬上扶回去。', ask:'手離開牆以後，哪隻腳站比較會晃？', teach:'單腳站看的是身體的地基穩不穩。比較會晃的那一腳，那一邊的腳、膝蓋、屁股比較緊繃。', note:'11/24 黃醫師：抬腳後手要離開牆，再看穩定還是會晃。'}
     ],
-    photoSteps: [['img/rec1.jpg','按下錄影'],['img/rec2.jpg','佔好位子，全身放鬆'],['img/rec3.jpg','回頭檢查，確定有拍到全身']],
+    photoSteps: [['img/rec1.jpg','按下錄影'],['img/feet_par.jpg','站在線上，兩腳平行，全身放鬆'],['img/rec3.jpg','回頭檢查，確定有拍到全身']],
+    stance: {t:'兩腳平行，和肩膀差不多寬', bad:'外八（腳尖往外）不準', ok:'img/feet_par.jpg', no:'img/feet_out.jpg', tip:'找地板的線或貼一條膠帶，兩腳內側都跟線平行。', note:'11/24 黃醫師：兩腳內側平行（太極平行步），外八會把落差縮小，照片就看不準。寬度（肩寬或髖寬）待確認。'},
     photoShot: {img:'img/shot.jpg', t:'截一張圖', sub:'打開剛剛的影片，停在站好不動的那一刻，截圖。'},
     points: [
       {id:'K1', enabled:true, name:'耳朵和肩膀', keys:['ear','sh']},
@@ -43,11 +44,12 @@ window.DEFAULT_CONFIG = {
     compares: [
       {id:'P1', enabled:true, key:'U8', half:'U', w:1, name:'肩膀', type:'one', ask:'哪邊肩膀比較高？', how:'看肩膀離白線多近。',
        ex:[['img/sh_level.jpg','兩邊一樣高'],['img/sh_high.jpg','右邊比較高']], see:'先不要看哪裡痛，從背後看看兩邊肩膀一樣高嗎？', mean:'比較高、比較聳的那一邊，常常是手臂或肩胛骨那裡太緊，肩膀只好往上提。', note:'判讀法 v0.4 的 U8＋U1。'},
-      {id:'P2', enabled:true, key:'U4', half:'U', w:1, name:'手', type:'pair', ask:'哪隻手露出比較多手背？', how:'手背＝有指關節的那一面。',
-       see:'手自然垂下來的時候，看看兩隻手各露出多少手背。', mean:'手背露比較多的那一邊，代表那隻手往裡面轉得比較多，上半身比較緊。', note:'判讀法 v0.4 的 U4b7。'},
-      {id:'P3', enabled:true, key:'L2', half:'D', w:1, name:'膝蓋後面', type:'one', ask:'膝蓋後面的橫紋，哪邊比較斜？', how:'看膝蓋後面那條橫的皺紋。',
-       ex:[['img/knee_compare.jpg','範例：左邊斜、右邊平']], see:'膝蓋後面那條橫的皺紋，平常很少人注意，可是它很老實。', mean:'一邊比較斜，常常是那一邊的腳或屁股在多出力。', note:'判讀法 v0.4 的 L2。'},
-      {id:'P4', enabled:true, key:'L1', half:'D', w:1.5, name:'腳跟', type:'one', ask:'哪邊腳跟比較往外倒？', how:'跟直的白線比。',
+      {id:'P2', enabled:true, key:'U4', half:'U', w:1, name:'手', type:'pair', ask:'哪隻手扭比較多？', how:'看不到手掌，或掌心露太多，都算扭比較多。',
+       ex:[['img/hand_ok.jpg','自然垂下'],['img/hand_hide.jpg','轉到前面，看不到'],['img/hand_palm.jpg','扭過頭，掌心露太多']],
+       see:'手自然垂下時，從背後看手掌的樣子。', mean:'空間消耗大的那隻手，手臂扭轉比較多：要麼手掌轉到前面看不見，要麼扭過頭、掌心露太多。', note:'判讀法 v0.4 的 U4b7。11/24 黃醫師：「要麼看不見，要麼手掌心看得太多」。'},
+      {id:'P3', enabled:true, key:'L2', half:'D', w:1, name:'膝蓋後面', type:'one', ask:'膝蓋後面的橫紋，哪一邊看起來比較短？', how:'橫紋外側那一端，越靠近腿的外緣，代表腿往內轉越多。',
+       see:'膝蓋後面那條橫紋是一個記號，真正看的是腿有沒有往內轉。', mean:'腿往內轉時，膝蓋後面會轉向外側，橫紋看起來變短、外端貼近腿的外緣。轉得比較多的那一邊，空間消耗比較大。', note:'判讀法 v0.4 的 L2。11/24 黃醫師說明：橫紋是記號，看腿內旋。v2.0 改為點橫紋兩端由電腦計算。'},
+      {id:'P4', enabled:true, key:'L1', half:'D', w:1.5, name:'腳跟', type:'one', ask:'哪邊腳跟比較往外倒？', how:'看腳跟中線和上面腳筋（跟腱）的線，折得越彎越明顯。',
        ex:[['img/heel_ok.jpg','兩邊都直直的'],['img/heel_out.jpg','左腳跟往外倒']], see:'腳跟就像房子的地基，黃醫師看得最仔細的就是這裡。', mean:'地基一歪，上面的膝蓋、屁股、甚至肩膀，都要跟著一起調整。', note:'判讀法 v0.4 的 L1，權重 1.5。'}
     ],
     photoNotes: 'AI 自動找 16 個點（左右各 8：耳、肩、手腕、手指、屁股、膝、腳踝、腳跟），學員分 4 步、每步放大確認兩種點。'
@@ -61,9 +63,9 @@ window.DEFAULT_CONFIG = {
   },
   explain: {
     levels: [
-      {max:29, name:'還好', color:'#7d8f6a', say:'目前還好，保持就好。'},
-      {max:59, name:'要注意', color:'#c08a3e', say:'有點緊，開始多照顧。'},
-      {max:100, name:'很緊繃', color:'#a8553a', say:'很緊繃，要優先照顧。'}
+      {max:29, name:'較少', color:'#7d8f6a', say:'這一區目前比較沒在多出力。'},
+      {max:59, name:'中等', color:'#c08a3e', say:'這一區有在多出力。'},
+      {max:100, name:'偏多', color:'#a8553a', say:'這一區出力最多，最值得先照顧。'}
     ],
     quadrants: {
       LU:{area:'左手、左肩膀、左邊上背', say:'這一帶一直在幫身體多出力。', unit:'U2', todo:'提東西、背包包，換到右邊試試看，讓左邊休息一下。'},
@@ -71,7 +73,11 @@ window.DEFAULT_CONFIG = {
       LD:{area:'左腳、左膝蓋、左邊屁股', say:'這一帶一直在幫身體多出力。', unit:'U3', todo:'站著的時候，兩隻腳平均出力，不要老是靠在左腳上。'},
       RD:{area:'右腳、右膝蓋、右邊屁股', say:'這一帶一直在幫身體多出力。', unit:'U3', todo:'站著的時候，兩隻腳平均出力，不要老是靠在右腳上。'}
     },
-    none: {say:'你身體的四個區塊，目前沒有哪一邊特別緊繃。', unit:'U1', todo:'繼續保持不讓身體停在同一個姿勢太久。'},
+    none: {say:'四個區塊出力比較平均，沒有哪一區特別突出。', unit:'U1', todo:'繼續保持不讓身體停在同一個姿勢太久。'},
+    pre: {t:'開始前，先知道三件事', items:['這套方法只看身體的上下、左右，不看前後、內外。','明顯脊椎側彎、長短腳、骨折過或打過鋼釘的人，結果可能不準。','這是幫你認識身體的練習，不是醫生的診斷。'],
+      ask:'你有明顯的脊椎側彎、長短腳，或骨折過、打過鋼釘嗎？', caveat:'你說身體有比較大的結構差異，這次結果只能參考，建議讓醫師親自看看。'},
+    injuryTodo: '你說「{area}」以前受過傷。就算現在不痛，那裡也可能還在影響身體出力，動的時候多留意這一帶。',
+    scarTodo: '你說{scar}有開刀的疤。疤會讓周圍比較緊，洗澡時可以輕輕推一推疤的周圍。',
     units: [
       {id:'U1', ch:'第三章', name:'靜態空間受限與動態慢性疼痛', why:'先弄懂「身體太緊、轉不開」是怎麼回事。'},
       {id:'U2', ch:'第三章', name:'結構空間不足 1：上 常見代償路徑推理', why:'上半身比較緊繃的人，學會怎麼照顧。'},

@@ -35,9 +35,9 @@ body{font-size:14.5px}
 <script>
 const $=s=>document.querySelector(s), esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const KEY=new URLSearchParams(location.search).get('key')||'';
-const NAME={K1:'確認點位1 耳肩',K2:'確認點位2 手',K3:'確認點位3 屁股膝蓋',K4:'確認點位4 腳',cover:'封面',brief:'四件事說明',rw1:'第1段完成',rw2:'第2段完成',rw3:'第3段完成',ph1:'拍照範例',ph2:'怎麼拍',ph3:'選照片',points:'確認點位',look:'看哪裡',inter1:'過場：謝謝你',inter2:'過場：什麼是空間',inter3:'過場：痛不一定是源頭',scan:'分析動畫',report1:'報告：一眼看懂',report2:'報告 p2',report3:'報告 p3',report4:'報告 p4',report5:'報告 p5',report6:'報告 p6',report7:'報告 p7',report8:'報告 p8'};
+const NAME={pre:'使用前先知道',feet_out:'外八提醒',K1:'確認點位1 耳肩',K2:'確認點位2 手',K3:'確認點位3 屁股膝蓋',K4:'確認點位4 腳',cover:'封面',brief:'四件事說明',rw1:'第1段完成',rw2:'第2段完成',rw3:'第3段完成',ph1:'拍照範例',ph2:'怎麼拍',ph3:'選照片',points:'確認點位',look:'看哪裡',inter1:'過場：謝謝你',inter2:'過場：什麼是空間',inter3:'過場：痛不一定是源頭',scan:'分析動畫',report1:'報告：一眼看懂',report2:'報告 p2',report3:'報告 p3',report4:'報告 p4',report5:'報告 p5',report6:'報告 p6',report7:'報告 p7',report8:'報告 p8'};
 const C=window.DEFAULT_CONFIG; [...C.sources.questions,...C.sources.moves,...C.sources.compares].forEach(x=>NAME[x.id]=x.id+' '+(x.name||x.t||'').slice(0,12));
-const ORDER=['cover','brief',...C.sources.questions.map(q=>q.id),'rw1',...C.sources.moves.map(m=>m.id),'rw2','ph1','ph2','ph3',...(C.sources.points||[]).map(p=>p.id),'points','look',...C.sources.compares.map(c=>c.id),'rw3','inter1','inter2','inter3','scan','report1','report2','report3','report4','report5','report6','report7','report8'];
+const ORDER=['cover','brief','pre',...C.sources.questions.map(q=>q.id),'rw1',...C.sources.moves.map(m=>m.id),'rw2','ph1','ph2','ph3',...(C.sources.points||[]).map(p=>p.id),'points','look',...C.sources.compares.map(c=>c.id),'rw3','inter1','inter2','inter3','scan','report1','report2','report3','report4','report5','report6','report7','report8'];
 let DATA=null, ROLE='全部';
 const med=a=>{ if(!a.length) return 0; const s=[...a].sort((x,y)=>x-y), m=s.length>>1; return s.length%2?s[m]:(s[m-1]+s[m])/2; };
 const fmt=ms=>ms>=60000?(ms/60000).toFixed(1)+' 分':Math.round(ms/1000)+' 秒';
