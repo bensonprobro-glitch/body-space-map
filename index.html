@@ -295,7 +295,7 @@ function vPh2(){ const st=CFG.sources.photoSteps;
   return `<div class="card"><span class="kicker">比一比｜怎麼拍</span><h2 class="mark">用手機直直的錄影</h2><div class="flip big" data-flip data-steps="1">${st.map(([src],i)=>`<img src="${src}" alt="" class="${i===0?'on':''}">`).join('')}<div class="fd">${st.map((_,i)=>`<i class="${i===0?'on':''}"></i>`).join('')}</div><div class="cap" hidden data-caps='${JSON.stringify(st.map(f=>f[1])).replace(/'/g,'&#39;')}'></div></div>
   <ol class="bigsteps">${st.map(([,t],i)=>`<li class="${i===0?'on':''}"><b>${i+1}</b>${esc(t)}</li>`).join('')}</ol><button class="btn" data-act="next">錄好了，下一步</button></div>`; }
 function vPh3(){ const sh=CFG.sources.photoShot; return `<div class="card"><span class="kicker">比一比｜選照片</span><h2 class="mark" style="font-size:30px">${esc(sh.t)}</h2>
-  <img class="photo-r" src="${sh.img}" alt="" style="max-height:34vh;object-fit:cover"><p class="lead">${esc(sh.sub)}</p>
+  <img class="photo-r" src="${sh.img}" alt="" style="width:100%;height:38vh;object-fit:cover;object-position:50% 47%"><p class="lead">${esc(sh.sub)}</p>
   <label class="btn" for="file">選這張截圖</label><input type="file" id="file" accept="image/*"><button class="btn ghost" data-act="demo">先用示範照片試試看</button>
   <p class="muted sm">照片只在你的手機裡，不會傳出去。</p><div id="phmsg"></div><button class="btn ghost small" data-act="skipphoto" style="align-self:center">這次先不拍照</button></div>`; }
 function vPts(id){ const p=PTS.find(x=>x.id===id), k=PTS.indexOf(p);
