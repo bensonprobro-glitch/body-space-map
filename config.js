@@ -4,7 +4,7 @@
 // =====================================================================
 window.BACKEND = 'https://script.google.com/macros/s/AKfycbz8lEGJFReE5NFtCD-TPk5BOZ6q5McjiMcM2KiPZIcuFl-YCtWTg0tIO89gZBuQdIlc/exec';
 window.DEFAULT_CONFIG = {
-  version:'v1.7',
+  version:'v1.8',
   sources: {
     questions: [
       {id:'Q1a', enabled:true, key:'pain', type:'bodymap', zone:0, t:'上半身，哪裡常痠痛？', sub:'點圓圈，可以點很多個。', score:{mode:'none'},
@@ -34,7 +34,7 @@ window.DEFAULT_CONFIG = {
     ],
     photoSteps: [['img/rec1.jpg','按下錄影'],['img/rec_stand.jpg','站在線上，兩腳平行，全身放鬆'],['img/rec3.jpg','回頭檢查，確定有拍到全身']],
     dress: {t:'照片要拍成這樣', male:'img/dress_m.jpg', female:'img/dress_f.jpg', maleCap:'男生｜打赤膊', femaleCap:'女生｜露背內衣',
-      calls:[['長髮盤起，露出脖子與肩線',61,15],['肩膀、脖子、上背完整露出',71,26],['褲頭低於髂骨（腰兩側骨頭）',74,42.5],['短褲，褲管不超過大腿中段',68,61.5],['膝蓋後方的橫紋要露出來',66,73],['赤足，腳跟和跟腱看得到',70,96]],
+      calls:[['長髮盤起，露出脖子與肩線',61,15],['肩膀、脖子、上背完整露出',71,26],['褲頭低於髂骨（腰兩側骨頭）',76,47],['短褲，褲管不超過大腿中段',68,61.5],['膝蓋後方的橫紋要露出來',66,73],['赤足，腳跟和跟腱看得到',70,96]],
       foot:'請取下手錶、手鍊、項鍊', zoom:'img/dress_iliac.jpg', zoomCap:'紅線是髂骨（腰兩側骨頭最上緣），褲頭要在紅線以下', note:'依黃醫師《結構照拍攝穿著參考圖》：衣服遮住，電腦就量不準。'},
     stance: {t:'兩腳平行，和肩膀差不多寬', bad:'外八（腳尖往外）不準', ok:'img/feet_par.jpg', no:'img/feet_out.jpg', tip:'找地板的線或貼一條膠帶，兩腳內側都跟線平行。', note:'11/24 黃醫師：兩腳內側平行（太極平行步），外八會把落差縮小，照片就看不準。寬度（肩寬或髖寬）待確認。'},
     photoShot: {img:'img/shot.jpg', t:'截一張圖', sub:'打開剛剛的影片，停在站好不動的那一刻，截圖。'},
