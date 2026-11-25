@@ -123,7 +123,7 @@ p.hint{font-size:18px;margin:2px 0}
 .axfin .im{height:min(24vh,190px);overflow:hidden}.axfin .im img{height:100%;mix-blend-mode:multiply;filter:saturate(.6)}
 .axfin b{font-family:var(--fs);font-size:18px;color:var(--ink)}.axfin span{font-size:15px;color:var(--brown);letter-spacing:.1em}.axfin p{font-size:14px;line-height:1.5;margin:4px 0 0;text-align:left;color:var(--muted)}
 .axfin .plus{font-size:24px;color:var(--brown);text-align:center}
-.chk .chip{font-size:14px;padding:5px 10px;line-height:1.3;white-space:nowrap}.zoom{margin:12px 0 4px}.zoom img{width:100%;border-radius:6px;display:block}.zoom figcaption{font-size:15px;color:var(--ink);margin-top:6px;text-align:center}
+.dref{position:relative;display:grid;grid-template-columns:1fr 1fr 1.25fr;gap:6px;align-items:start}.dref figure{margin:0}.dref img{width:100%;display:block;border-radius:6px}.dref figcaption{font-size:12.5px;text-align:center;color:var(--ink);margin-top:4px}.dcalls{display:flex;flex-direction:column;justify-content:space-between;position:relative;z-index:1}.dc{border:1.5px solid var(--brown);border-radius:8px;padding:3px 7px;font-size:12.5px;line-height:1.35;background:var(--paper);color:var(--ink)}.dline{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;stroke:var(--brown);fill:var(--brown);stroke-width:1.5}.dpill{margin:10px auto 0;text-align:center;background:var(--soft);border-radius:999px;padding:7px 14px;font-size:15px;color:var(--ink)}.zoom{margin:12px 0 4px}.zoom img{width:100%;height:130px;object-fit:cover;object-position:50% 48%;border-radius:6px;display:block}.zoom figcaption{font-size:15px;color:var(--ink);margin-top:6px;text-align:center}
 </style>
 </head>
 <body>
@@ -279,11 +279,18 @@ function vMove(id){ const m=MOVES.find(x=>x.id===id), k=MOVES.indexOf(m)+1, v=S.
     ${!step2?`<h3>${esc(m.ask)}${idc(m.id)}</h3><div class="opts grid">${sides.map(o=>`<button class="opt c" data-act="mv" data-m="${m.id}" data-k="side" data-v="${o}" aria-pressed="${v.side===o}">${o}</button>`).join('')}</div>`
       :`<h3>${esc(v.side)}的感覺，比較像哪一種？</h3><div class="opts">${feel.map(o=>`<button class="opt" data-act="mv" data-m="${m.id}" data-k="feel" data-v="${o}">${o}</button>`).join('')}</div><button class="btn ghost small" data-act="mvreset" data-m="${m.id}" style="align-self:center">重選左右</button>`}
   </div>${note(m.note)}`; }
-function vPh1(){ const D=CFG.sources.dress, st=CFG.sources.stance; return `<div class="card"><span class="kicker">比一比｜拍一張背面照</span><h2 class="mark">照片要拍成這樣</h2>
-  <div class="row" style="align-items:center"><img src="${D.img}" alt="正確的背面照範例" style="flex:1.05;min-width:0;max-height:40vh;object-fit:contain;border-radius:6px;background:var(--soft)"><div style="flex:1;display:flex;flex-direction:column;gap:6px" class="ui chk">${D.checks.map((t,i)=>`<span class="chip" ${F(.05+i*.05)}>✓ ${esc(t)}</span>`).join('')}</div></div>
+function vPh1(){ const D=CFG.sources.dress, st=CFG.sources.stance; return `<div class="card"><span class="kicker">比一比｜拍一張背面照</span><h2 class="mark">${esc(D.t||'照片要拍成這樣')}</h2>
+  <div class="dref" id="dref"><figure><img src="${D.male}" alt="男生背面範例"><figcaption>${esc(D.maleCap)}</figcaption></figure><figure class="df"><img src="${D.female}" alt="女生背面範例"><figcaption>${esc(D.femaleCap)}</figcaption></figure>
+  <div class="dcalls">${D.calls.map((c,i)=>`<div class="dc" ${F(.1+i*.08)}>${esc(c[0])}</div>`).join('')}</div><svg class="dline"></svg></div>
+  <div class="dpill">${esc(D.foot)}</div>
   ${D.zoom?`<figure class="zoom"><img src="${D.zoom}" alt="髂骨位置"><figcaption>${esc(D.zoomCap||'')}</figcaption></figure>`:''}${note(D.note)}
   <div class="ex2">${[[st.ok,'✓ '+st.t,''],[st.no,'✗ '+st.bad,'bad']].map(([src,cap,c])=>`<figure class="${c}"><img src="${src}" alt=""><figcaption>${esc(cap)}</figcaption></figure>`).join('')}</div>
   <p class="muted sm">${esc(st.tip)}</p><button class="btn" data-act="next">看怎麼拍</button></div>`; }
+function layoutDref(){ const R=$('#dref'); if(!R) return; const fi=R.querySelector('.df img'), cs=R.querySelector('.dcalls'), sv=R.querySelector('.dline'); if(!fi.complete||!fi.naturalWidth){ fi.onload=layoutDref; return; }
+  const rb=R.getBoundingClientRect(), ib=fi.getBoundingClientRect(); cs.style.height=ib.height+'px'; const calls=CFG.sources.dress.calls;
+  sv.setAttribute('viewBox',`0 0 ${rb.width} ${rb.height}`); sv.innerHTML=[...cs.children].map((el,i)=>{ const b=el.getBoundingClientRect(), x1=b.left-rb.left, y1=b.top-rb.top+b.height/2, x2=ib.left-rb.left+ib.width*calls[i][1]/100, y2=ib.top-rb.top+ib.height*calls[i][2]/100;
+    return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/><circle cx="${x2}" cy="${y2}" r="3"/>`; }).join(''); }
+window.addEventListener('resize',()=>{ if(FLOW[S.i]==='ph1') layoutDref(); });
 function vPh2(){ const st=CFG.sources.photoSteps;
   return `<div class="card"><span class="kicker">比一比｜怎麼拍</span><h2 class="mark">用手機直直的錄影</h2><div class="flip big" data-flip data-steps="1">${st.map(([src],i)=>`<img src="${src}" alt="" class="${i===0?'on':''}">`).join('')}<div class="fd">${st.map((_,i)=>`<i class="${i===0?'on':''}"></i>`).join('')}</div><div class="cap" hidden data-caps='${JSON.stringify(st.map(f=>f[1])).replace(/'/g,'&#39;')}'></div></div>
   <ol class="bigsteps">${st.map(([,t],i)=>`<li class="${i===0?'on':''}"><b>${i+1}</b>${esc(t)}</li>`).join('')}</ol><button class="btn" data-act="next">錄好了，下一步</button></div>`; }
@@ -527,7 +534,7 @@ document.addEventListener('change', async e=>{ if(e.target.id!=='file'||!e.targe
 function toast(t){ let el=$('#toast'); if(!el){ el=document.createElement('div'); el.id='toast'; el.className='toast'; document.body.appendChild(el); } el.textContent=t; el.hidden=false; clearTimeout(window._tt); window._tt=setTimeout(()=>el.hidden=true,2400); }
 function after(n){
   fillQP(); fillDC(); startFlips(); fillKnee(); if(n==='axes'){ setTimeout(()=>{ const a=$('#ax'); a&&a.classList.add('go'); },60); startAxHero(); }
-  if(n==='cover') startHero(); else clearInterval(window._hero);
+  if(n==='ph1') layoutDref(); if(n==='cover') startHero(); else clearInterval(window._hero);
   if(n[0]==='K'){ const p=PTS.find(x=>x.id===n); drawPointsOn($('#cv'), S.ph.img, S.ph.lm, ()=>Tele.ev('drag'), p.keys); fillPtEx(); }
   if(n==='look'){ const m=makeCrops(S.ph.img,S.ph.lm); S.regions=m.regions; const cv=$('#pv'), img=S.ph.img, box=partBox(S.ph.lm,'all'), [x0,y0,x1,y1]=box, W=Math.min(900,Math.round(x1-x0)), sc=W/(x1-x0), H=Math.round((y1-y0)*sc); cv.width=W; cv.height=H; const g=cv.getContext('2d'); drawCrop(g,img,box,W,H);
     CMPS.forEach((c,i)=>S.regions[c.key].forEach(([x,y,sz])=>{ const px=(x-x0)*sc, py=(y-y0)*sc, rr=sz*.45*sc; g.beginPath(); g.arc(px,py,rr,0,7); g.lineWidth=Math.max(3,W/160); g.strokeStyle='#7a5638'; g.stroke(); const r=Math.max(18,W/26), bx=px+rr*.72, by=py-rr*.72; g.beginPath(); g.arc(bx,by,r,0,7); g.fillStyle='#7a5638'; g.fill(); g.fillStyle='#fff'; g.font=`${Math.round(r*1.2)}px sans-serif`; g.textAlign='center'; g.textBaseline='middle'; g.fillText(String(i+1),bx,by); g.textAlign='left'; g.textBaseline='alphabetic'; })); }

@@ -61,7 +61,7 @@ const clone = o => JSON.parse(JSON.stringify(o));
 const PREVIEW_KEY = 'sk_cfg_preview';
 function migrateCfg(c){ if(!c||!c.sources) return c; const qs=c.sources.questions, i=qs.findIndex(q=>q.type==='bodymap'&&q.zone==null);
   if(i>=0){ const def=window.DEFAULT_CONFIG.sources.questions.filter(q=>q.type==='bodymap'); qs.splice(i,1,...clone(def)); }
-  const D=window.DEFAULT_CONFIG; ['points','photoSteps','photoShot','dress'].forEach(k=>{ if(!c.sources[k]) c.sources[k]=clone(D.sources[k]); }); if(!c.sources.dress.checks) c.sources.dress=clone(D.sources.dress); if(c.explain&&!c.explain.levels) c.explain.levels=clone(D.explain.levels);
+  const D=window.DEFAULT_CONFIG; ['points','photoSteps','photoShot','dress'].forEach(k=>{ if(!c.sources[k]) c.sources[k]=clone(D.sources[k]); }); if(!c.sources.dress.calls) c.sources.dress=clone(D.sources.dress); if(c.explain&&!c.explain.levels) c.explain.levels=clone(D.explain.levels);
   if(c.explain&&c.explain.levels&&c.explain.levels[0].name==='還好') c.explain.levels=clone(D.explain.levels);
   ['pre','injuryTodo','scarTodo'].forEach(k=>{ if(c.explain&&c.explain[k]==null) c.explain[k]=clone(D.explain[k]); }); if(!c.sources.stance) c.sources.stance=clone(D.sources.stance);
   (c.sources.compares||[]).forEach(cp=>{ const d=D.sources.compares.find(x=>x.key===cp.key); if(cp.key==='L2'&&cp.ex&&cp.ex.some(e=>/knee_/.test(e[0]))){ delete cp.ex; Object.assign(cp,{ask:d.ask,how:d.how,see:d.see,mean:d.mean}); } if(cp.key==='U4'&&!cp.ex&&d.ex){ cp.ex=clone(d.ex); Object.assign(cp,{ask:d.ask,how:d.how,see:d.see,mean:d.mean}); } });
