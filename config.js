@@ -4,7 +4,7 @@
 // =====================================================================
 window.BACKEND = 'https://script.google.com/macros/s/AKfycbz8lEGJFReE5NFtCD-TPk5BOZ6q5McjiMcM2KiPZIcuFl-YCtWTg0tIO89gZBuQdIlc/exec';
 window.DEFAULT_CONFIG = {
-  version: 'v1.5',
+  version:'v1.6',
   sources: {
     questions: [
       {id:'Q1a', enabled:true, key:'pain', type:'bodymap', zone:0, t:'上半身，哪裡常痠痛？', sub:'點圓圈，可以點很多個。', score:{mode:'none'},
@@ -33,7 +33,7 @@ window.DEFAULT_CONFIG = {
        safety:'旁邊一定要有牆或椅子，晃了就馬上扶回去。', ask:'手離開牆以後，站在哪一隻腳上比較會晃？', teach:'單腳站看的是身體的地基穩不穩。比較會晃的那一腳，那一邊的腳、膝蓋、屁股比較緊繃。', note:'11/24 黃醫師：抬腳後手要離開牆，再看穩定還是會晃。'}
     ],
     photoSteps: [['img/rec1.jpg','按下錄影'],['img/rec_stand.jpg','站在線上，兩腳平行，全身放鬆'],['img/rec3.jpg','回頭檢查，確定有拍到全身']],
-    dress: {t:'先換好衣服', sub:'衣服遮住，電腦就量不準。照這張表準備：', rows:[['腳','赤足，不穿襪子、拖鞋'],['下身','短褲，褲管不超過大腿中段'],['褲頭','拉到腰兩側骨頭（髂骨嵴）以下'],['上身','男性赤膊；女性穿露背運動內衣或開背衣。肩膀、脖子、上背要完整露出'],['頭髮','長髮盤起，露出脖子和兩側肩膀線'],['飾品','手錶、手鍊、項鍊拿掉']], note:'依黃醫師《用戶拍照規範》'},
+    dress: {img:'img/demo_back.jpg', zoom:'img/demo_iliac.jpg', zoomCap:'褲頭拉到髂骨以下，電腦才找得到骨盆', checks:['頭到腳都拍到','背對手機','光腳','短褲不過大腿中段','褲頭在髂骨以下','男生赤膊','女生露背運動內衣','長髮盤起','拿掉手錶、項鍊'], note:'依黃醫師《用戶拍照規範》：衣服遮住，電腦就量不準。'},
     stance: {t:'兩腳平行，和肩膀差不多寬', bad:'外八（腳尖往外）不準', ok:'img/feet_par.jpg', no:'img/feet_out.jpg', tip:'找地板的線或貼一條膠帶，兩腳內側都跟線平行。', note:'11/24 黃醫師：兩腳內側平行（太極平行步），外八會把落差縮小，照片就看不準。寬度（肩寬或髖寬）待確認。'},
     photoShot: {img:'img/shot.jpg', t:'截一張圖', sub:'打開剛剛的影片，停在站好不動的那一刻，截圖。'},
     points: [

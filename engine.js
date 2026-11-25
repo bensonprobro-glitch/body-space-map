@@ -3,10 +3,10 @@
 // =====================================================================
 const QN = {LU:'左上',RU:'右上',LD:'左下',RD:'右下'};
 const QUADS = ['LU','RU','LD','RD'];
-const DEMO_LM = { earL:[481,222,1], earR:[554,233,1], shL:[379,395,1], shR:[648,412,1], wrL:[349,780,.74], wrR:[683,801,.88], idxL:[344,824,.61], idxR:[680,845,.78], hipL:[429,764,1], hipR:[575,765,1], knL:[417,1075,.94], knR:[587,1084,.98], anL:[394,1359,.95], anR:[607,1361,.97], heL:[399,1407,.91], heR:[594,1406,.95],
+const DEMO_LM = { earL:[481,222,1], earR:[554,233,1], shL:[379,395,1], shR:[648,412,1], wrL:[349,780,.74], wrR:[683,801,.88], idxL:[344,824,.61], idxR:[680,845,.78], hipL:[429,774,1], hipR:[575,774,1], knL:[417,1075,.94], knR:[587,1084,.98], anL:[394,1359,.95], anR:[607,1361,.97], heL:[399,1407,.91], heR:[594,1406,.95],
   nkL:[455,332,1], nkR:[557,336,1], stL:[368,360,1], stR:[645,367,1], uoL:[345,410,1], uoR:[672,415,1],
   umL:[358,540,1], umR:[650,540,1], olL:[348,610,1], olR:[657,628,1], fmL:[341,720,1], fmR:[667,720,1],
-  wcL:[349,782,1], wcR:[683,801,1], hcL:[346,806,1], hcR:[682,825,1], icL:[393,643,1], icR:[618,643,1],
+  wcL:[349,782,1], wcR:[683,801,1], hcL:[346,806,1], hcR:[682,825,1], icL:[393,680,1], icR:[618,680,1],
   piL:[458,1082,1], poL:[407,1083,1], koL:[373,1083,1], piR:[543,1088,1], poR:[613,1088,1], koR:[642,1090,1],
   a1L:[392,1285,1], a2L:[390,1375,1], hbL:[392,1417,1], a1R:[594,1285,1], a2R:[595,1380,1], hbR:[587,1425,1] };
 const PT_KEYS = Object.keys(DEMO_LM);
@@ -61,7 +61,7 @@ const clone = o => JSON.parse(JSON.stringify(o));
 const PREVIEW_KEY = 'sk_cfg_preview';
 function migrateCfg(c){ if(!c||!c.sources) return c; const qs=c.sources.questions, i=qs.findIndex(q=>q.type==='bodymap'&&q.zone==null);
   if(i>=0){ const def=window.DEFAULT_CONFIG.sources.questions.filter(q=>q.type==='bodymap'); qs.splice(i,1,...clone(def)); }
-  const D=window.DEFAULT_CONFIG; ['points','photoSteps','photoShot','dress'].forEach(k=>{ if(!c.sources[k]) c.sources[k]=clone(D.sources[k]); }); if(c.explain&&!c.explain.levels) c.explain.levels=clone(D.explain.levels);
+  const D=window.DEFAULT_CONFIG; ['points','photoSteps','photoShot','dress'].forEach(k=>{ if(!c.sources[k]) c.sources[k]=clone(D.sources[k]); }); if(!c.sources.dress.checks) c.sources.dress=clone(D.sources.dress); if(c.explain&&!c.explain.levels) c.explain.levels=clone(D.explain.levels);
   if(c.explain&&c.explain.levels&&c.explain.levels[0].name==='還好') c.explain.levels=clone(D.explain.levels);
   ['pre','injuryTodo','scarTodo'].forEach(k=>{ if(c.explain&&c.explain[k]==null) c.explain[k]=clone(D.explain[k]); }); if(!c.sources.stance) c.sources.stance=clone(D.sources.stance);
   (c.sources.compares||[]).forEach(cp=>{ const d=D.sources.compares.find(x=>x.key===cp.key); if(cp.key==='L2'&&cp.ex&&cp.ex.some(e=>/knee_/.test(e[0]))){ delete cp.ex; Object.assign(cp,{ask:d.ask,how:d.how,see:d.see,mean:d.mean}); } if(cp.key==='U4'&&!cp.ex&&d.ex){ cp.ex=clone(d.ex); Object.assign(cp,{ask:d.ask,how:d.how,see:d.see,mean:d.mean}); } });

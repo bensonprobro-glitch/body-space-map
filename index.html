@@ -123,7 +123,7 @@ p.hint{font-size:18px;margin:2px 0}
 .axfin .im{height:min(24vh,190px);overflow:hidden}.axfin .im img{height:100%;mix-blend-mode:multiply;filter:saturate(.6)}
 .axfin b{font-family:var(--fs);font-size:18px;color:var(--ink)}.axfin span{font-size:15px;color:var(--brown);letter-spacing:.1em}.axfin p{font-size:14px;line-height:1.5;margin:4px 0 0;text-align:left;color:var(--muted)}
 .axfin .plus{font-size:24px;color:var(--brown);text-align:center}
-.dress{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:10px;overflow:hidden}.dress div{display:grid;grid-template-columns:64px 1fr;gap:10px;padding:10px 12px;font-size:17px;line-height:1.5}.dress div+div{border-top:1px solid var(--line)}.dress b{color:var(--brown);font-family:var(--fs)}
+.chk .chip{font-size:14px;padding:5px 10px;line-height:1.3;white-space:nowrap}.zoom{margin:12px 0 4px}.zoom img{width:100%;border-radius:6px;display:block}.zoom figcaption{font-size:15px;color:var(--ink);margin-top:6px;text-align:center}
 </style>
 </head>
 <body>
@@ -141,9 +141,9 @@ const ZT = [{name:'上半身', parts:['頭頸','肩膀','上背','手肘手腕']
 const DC={}; async function fillDC(){ const els=document.querySelectorAll('img[data-dc]'); if(!els.length) return; await demoP; els.forEach(el=>{ const k=el.dataset.dc; if(!DC[k]){ const b=k.split(',').map(Number), W=Math.min(900,Math.round(b[2]-b[0])), H=Math.round(W*(b[3]-b[1])/(b[2]-b[0])), c=document.createElement('canvas'); c.width=W; c.height=H; drawCrop(c.getContext('2d'),DEMO_IMG,b,W,H); DC[k]=c.toDataURL('image/jpeg',.88); } el.src=DC[k]; }); }
 const PRAISE = ['很好！','答得好！','你很認真喔','觀察得真仔細','做得很棒','就是這樣！','好棒，繼續加油'];
 const S = {doc:false, snd:true, i:0, t0:null, a:{}, mv:{}, ph:{mode:null,img:null,lm:null,ai:null}, crops:null, regions:null, cmp:{}, res:null, slide:0, rp:0, saved:false, fit:null, docJ:null};
-const FLOW = ['cover','brief','axes','pre', ...QS.map(q=>q.id), 'rw1', ...MOVES.map(m=>m.id), 'rw2', ...(TRIAL?[]:['ph0','ph1','ph2','ph3', ...PTS.map(p=>p.id), ...(CMPS.length>1?['look']:[]), ...CMPS.map(c=>c.id), 'rw3']), 'inter','scan','result'];
+const FLOW = ['cover','brief','axes','pre', ...QS.map(q=>q.id), 'rw1', ...MOVES.map(m=>m.id), 'rw2', ...(TRIAL?[]:['ph1','ph2','ph3', ...PTS.map(p=>p.id), ...(CMPS.length>1?['look']:[]), ...CMPS.map(c=>c.id), 'rw3']), 'inter','scan','result'];
 const STAGES = ['問一問','動一動','比一比','看結果'];
-const STAGE_OF = n => n==='cover'||n==='brief'||n==='pre'||n==='axes'?0 : n[0]==='Q'||n==='rw1'?1 : n[0]==='M'||n==='rw2'?2 : ['ph0','ph1','ph2','ph3','look','rw3'].includes(n)||n[0]==='P'||n[0]==='K'?3 : 4;
+const STAGE_OF = n => n==='cover'||n==='brief'||n==='pre'||n==='axes'?0 : n[0]==='Q'||n==='rw1'?1 : n[0]==='M'||n==='rw2'?2 : ['ph1','ph2','ph3','look','rw3'].includes(n)||n[0]==='P'||n[0]==='K'?3 : 4;
 const idc = id => S.doc ? `<span class="idchip">${id}</span>` : '';
 const RM = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 const F = d => `class="fade" style="animation-delay:${d}s"`;
@@ -192,7 +192,7 @@ function render(){
   const n=FLOW[S.i];
   if(n==='inter'||n==='scan'||(n==='result'&&!S.res)) S.res=score(CFG, ansOf());
   if(n==='result') saveEntry();
-  const V={cover:vCover, brief:vBrief, pre:vPre, axes:vAxes, rw1:()=>vReward(1), rw2:()=>vReward(2), rw3:()=>vReward(3), ph0:vPh0, ph1:vPh1, ph2:vPh2, ph3:vPh3, look:vLook, inter:vInter, scan:vScan, result:vResult};
+  const V={cover:vCover, brief:vBrief, pre:vPre, axes:vAxes, rw1:()=>vReward(1), rw2:()=>vReward(2), rw3:()=>vReward(3), ph1:vPh1, ph2:vPh2, ph3:vPh3, look:vLook, inter:vInter, scan:vScan, result:vResult};
   const body = V[n]?V[n]() : n[0]==='Q'?vQ(n) : n[0]==='M'?vMove(n) : n[0]==='K'?vPts(n) : vCmp(n);
   const on=S.snd&&AU.on, left=NOBACK.includes(n)?'<span>時空身體地圖・空間篇</span>':`<button class="bk" data-act="back">‹ 上一步</button>`;
   $('#app').innerHTML = `${PREVIEW?'<div class="pv">醫師預覽模式：正在使用你在後台編輯的設定</div>':''}<div class="top">${left}<div class="r"><button data-act="snd" aria-pressed="${on}">${on?'音樂 開':'音樂 關'}</button><button data-act="doc" aria-pressed="${S.doc}">醫師檢視</button></div></div>${stageBar()}${body}${n==='cover'?'<p class="foot">衛教內容僅供參考，個人狀況請由醫師判斷</p>':''}`;
@@ -279,13 +279,11 @@ function vMove(id){ const m=MOVES.find(x=>x.id===id), k=MOVES.indexOf(m)+1, v=S.
     ${!step2?`<h3>${esc(m.ask)}${idc(m.id)}</h3><div class="opts grid">${sides.map(o=>`<button class="opt c" data-act="mv" data-m="${m.id}" data-k="side" data-v="${o}" aria-pressed="${v.side===o}">${o}</button>`).join('')}</div>`
       :`<h3>${esc(v.side)}的感覺，比較像哪一種？</h3><div class="opts">${feel.map(o=>`<button class="opt" data-act="mv" data-m="${m.id}" data-k="feel" data-v="${o}">${o}</button>`).join('')}</div><button class="btn ghost small" data-act="mvreset" data-m="${m.id}" style="align-self:center">重選左右</button>`}
   </div>${note(m.note)}`; }
-function vPh0(){ const D=CFG.sources.dress; return `<div class="card"><span class="kicker">比一比｜拍照前準備</span><h2 class="mark">${esc(D.t)}</h2><p class="muted">${esc(D.sub)}</p>
-  <div class="dress">${D.rows.map(([a,b],i)=>`<div ${F(.05+i*.07)}><b>${esc(a)}</b><span>${esc(b)}</span></div>`).join('')}</div>${note(D.note)}
-  <button class="btn" data-act="next">換好了，看照片範例</button></div>`; }
-function vPh1(){ return `<div class="card"><span class="kicker">比一比｜拍一張背面照</span><h2 class="mark">照片要拍成這樣</h2>
-  <div class="row" style="align-items:center"><img src="img/demo_back.jpg" alt="正確的背面照範例" style="flex:1;max-height:42vh;object-fit:contain;border-radius:6px;background:var(--soft)"><div style="flex:1;display:flex;flex-direction:column;gap:10px" class="ui"><span class="chip">✓ 頭到腳都拍到</span><span class="chip">✓ 背對手機</span><span class="chip">✓ 肩膀露出來</span><span class="chip">✓ 膝蓋後面露出來</span><span class="chip">✓ 光腳</span></div></div>
-  <div class="ex2">${[[CFG.sources.stance.ok,'✓ '+CFG.sources.stance.t,''],[CFG.sources.stance.no,'✗ '+CFG.sources.stance.bad,'bad']].map(([src,cap,c])=>`<figure class="${c}"><img src="${src}" alt=""><figcaption>${esc(cap)}</figcaption></figure>`).join('')}</div>
-  <p class="muted sm">${esc(CFG.sources.stance.tip)}穿運動內衣或背心、短褲，頭髮綁起來。</p><button class="btn" data-act="next">看怎麼拍</button></div>`; }
+function vPh1(){ const D=CFG.sources.dress, st=CFG.sources.stance; return `<div class="card"><span class="kicker">比一比｜拍一張背面照</span><h2 class="mark">照片要拍成這樣</h2>
+  <div class="row" style="align-items:center"><img src="${D.img}" alt="正確的背面照範例" style="flex:1.05;min-width:0;max-height:40vh;object-fit:contain;border-radius:6px;background:var(--soft)"><div style="flex:1;display:flex;flex-direction:column;gap:6px" class="ui chk">${D.checks.map((t,i)=>`<span class="chip" ${F(.05+i*.05)}>✓ ${esc(t)}</span>`).join('')}</div></div>
+  ${D.zoom?`<figure class="zoom"><img src="${D.zoom}" alt="髂骨位置"><figcaption>${esc(D.zoomCap||'')}</figcaption></figure>`:''}${note(D.note)}
+  <div class="ex2">${[[st.ok,'✓ '+st.t,''],[st.no,'✗ '+st.bad,'bad']].map(([src,cap,c])=>`<figure class="${c}"><img src="${src}" alt=""><figcaption>${esc(cap)}</figcaption></figure>`).join('')}</div>
+  <p class="muted sm">${esc(st.tip)}</p><button class="btn" data-act="next">看怎麼拍</button></div>`; }
 function vPh2(){ const st=CFG.sources.photoSteps;
   return `<div class="card"><span class="kicker">比一比｜怎麼拍</span><h2 class="mark">用手機直直的錄影</h2><div class="flip big" data-flip data-steps="1">${st.map(([src],i)=>`<img src="${src}" alt="" class="${i===0?'on':''}">`).join('')}<div class="fd">${st.map((_,i)=>`<i class="${i===0?'on':''}"></i>`).join('')}</div><div class="cap" hidden data-caps='${JSON.stringify(st.map(f=>f[1])).replace(/'/g,'&#39;')}'></div></div>
   <ol class="bigsteps">${st.map(([,t],i)=>`<li class="${i===0?'on':''}"><b>${i+1}</b>${esc(t)}</li>`).join('')}</ol><button class="btn" data-act="next">錄好了，下一步</button></div>`; }
@@ -351,7 +349,7 @@ function reportPages(){
   P.push(['一眼看懂',`<span class="kicker" ${F(0)}>一眼看懂</span><div ${F(.1)}>${qpTag(r.qs,r.main||r.lean,{w:620,src:'user'},'mapimg')}${lvLegend()}</div>
     <p class="say" ${F(.35)}>${say}</p>${r.main?`<div class="sure" ${F(.6)}>${dots(r.nAgree)}<span>${r.nAgree>=3?'三個提示都這樣說':'三個提示裡有兩個這樣說'}</span></div>`:''}${S.a.struct==='有'?`<div class="warnbox" ${F(.7)}>${esc(EX.pre.caveat)}</div>`:''}${TRIAL?`<div class="warnbox" ${F(.7)}>試用版只用了回答和動作。完整版會加上一張背面照，看得更準。</div>`:''}<p class="muted sm" ${F(.75)}>${esc(EX.disclaimer)}往後翻，看為什麼、今天可以做什麼。</p>`]);
   if(prevs.length) P.push(['這段時間的變化',`<span class="kicker">這段時間的變化</span><h2 class="mark">你已經記錄 ${H.length} 次了</h2><div class="histrow">${H.slice(-6).map(e=>`<div class="hm ${e.id===S.entryId?'now':''}">${qpTag(qsOf(e),e.m,{w:150,labels:false})}<span>${esc(e.d)}${e.id===S.entryId?'（今天）':''}${e.demo?'＊':''}</span></div>`).join('')}</div>${chartSVG(H.slice(-6))}<p>${changeSentence(H.slice(-6))}</p>${H.some(e=>e.demo)?'<p class="muted sm">＊示範紀錄</p>':''}`]);
-  P.push(['為什麼這樣說',`<span class="kicker">為什麼這樣說</span><h2 class="mark">你今天找到 ${r.votes.length} 個提示</h2><div class="row" style="align-items:flex-start"><div style="flex:1">${hasPhoto?'<img id="annot" alt="" style="width:100%;border-radius:6px;max-height:46vh;object-fit:contain;background:#2a2420">':qpTag(r.qs,r.main,{w:300,labels:false})}</div>
+  P.push(['為什麼這樣說',`<span class="kicker">為什麼這樣說</span><h2 class="mark">你今天找到 ${r.votes.length} 個提示</h2><div class="row" style="align-items:flex-start"><div style="flex:1">${hasPhoto?'<img id="annot" alt="" style="width:100%;border-radius:6px;max-height:40vh;object-fit:contain;background:#2a2420">':qpTag(r.qs,r.main,{w:300,labels:false})}</div>
     <div style="flex:1.1;display:flex;flex-direction:column;gap:8px"><div class="quad2">${QUADS.map(cell).join('')}</div><div class="ui sm" style="display:flex;flex-direction:column;gap:4px">${r.votes.map(v=>`<span>・${esc(v.label)}</span>`).join('')||'這次沒有明確的提示'}${S.a.scar&&S.a.scar!=='沒有'?`<span class="muted">・${esc(S.a.scar)}有開刀的疤（不計分，醫師會參考）</span>`:''}</div></div></div>
     <p class="muted sm">至少 ${CFG.logic.minAgree} 種提示（回答、動作、照片）指向同一邊，才會說「這邊比較緊繃」。輕微不一樣很正常。</p>`]);
   const finds=[];
@@ -454,7 +452,7 @@ function annotate(){ const el=$('#annot'); if(!el||!S.ph.img) return; const {img
 
 // ---------- 回報（直接送到 Benson 信箱） ----------
 const RK='sk_reports_v1';
-function screenCtx(){ const n=FLOW[S.i], item=QS.find(x=>x.id===n)||MOVES.find(x=>x.id===n)||CMPS.find(x=>x.id===n); const stage=n==='pre'?'使用前先知道':n[0]==='Q'?'問答':n[0]==='M'?'動作':n[0]==='P'?'照片對照':n==='result'?'結果報告第 '+(S.rp+1)+' 頁':n==='inter'?'完成過場':(['ph0','ph1','ph2','ph3','look'].includes(n)||n[0]==='K')?'照片':'其他'; return {n, stage, id:item?item.id:n, text:item?(item.t||item.ask||''):''}; }
+function screenCtx(){ const n=FLOW[S.i], item=QS.find(x=>x.id===n)||MOVES.find(x=>x.id===n)||CMPS.find(x=>x.id===n); const stage=n==='pre'?'使用前先知道':n[0]==='Q'?'問答':n[0]==='M'?'動作':n[0]==='P'?'照片對照':n==='result'?'結果報告第 '+(S.rp+1)+' 頁':n==='inter'?'完成過場':(['ph1','ph2','ph3','look'].includes(n)||n[0]==='K')?'照片':'其他'; return {n, stage, id:item?item.id:n, text:item?(item.t||item.ask||''):''}; }
 function openReport(){ const ctx=screenCtx(), types=['看不懂','結果不準','畫面怪怪的','我有建議'];
   const sh=document.createElement('div'); sh.className='sheet'; sh.id='sheet';
   sh.innerHTML=`<div class="in" role="dialog" aria-label="回報"><div class="row" style="align-items:center"><h3 style="flex:3">回報給我們</h3><button class="btn ghost small" data-act="closerep" style="flex:none">關閉</button></div>
