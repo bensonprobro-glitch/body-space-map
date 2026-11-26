@@ -127,7 +127,10 @@ p.hint{font-size:18px;margin:2px 0}
 </style>
 </head>
 <body>
+<div class="bsm-shell">
+<aside class="bsm-rail" aria-label="進度"><p class="bsm-rail-kicker">中醫師的身體自我修復學</p><p class="bsm-rail-title">時空身體地圖<span>空間篇</span></p><ol class="bsm-rail-steps" data-rail-steps></ol><p class="bsm-rail-meta" data-rail-meta></p><p class="bsm-rail-note">照片只在你的裝置上處理，不會上傳。<br>僅供個人參考，不代表醫師診斷。</p></aside>
 <div class="app" id="app"></div>
+</div>
 <div id="fx"></div>
 <button class="fab" id="fab" data-act="report">回報</button>
 <script src="config.js"></script>
@@ -198,8 +201,17 @@ function render(){
   $('#app').innerHTML = `${PREVIEW?'<div class="pv">醫師預覽模式：正在使用你在後台編輯的設定</div>':''}<div class="top">${left}<div class="r"><button data-act="snd" aria-pressed="${on}">${on?'音樂 開':'音樂 關'}</button><button data-act="doc" aria-pressed="${S.doc}">醫師檢視</button></div></div>${stageBar()}${body}${n==='cover'?'<p class="foot">衛教內容僅供參考，個人狀況請由醫師判斷</p>':''}`;
   $('#fab').classList.toggle('up', n==='result');
   Tele.screen(n==='inter'?'inter'+(S.slide+1):n==='result'?'report'+(S.rp+1):n);
-  after(n); window.scrollTo(0,0);
+  after(n); railUpdate(n); const y=window.scrollY; if(y>0) window.scrollTo({top:0, behavior: y<900&&!RM()?'smooth':'auto'});
 }
+// ---------- 桌機版：左側進度欄（手機版由 CSS 隱藏） ----------
+function railUpdate(n){ const ol=document.querySelector('[data-rail-steps]'); if(!ol) return; const cur=STAGE_OF(n);
+  const cnt=[0,QS.length,MOVES.length,TRIAL?0:FLOW.filter(x=>STAGE_OF(x)===3).length,1], sub=['',QS.length+' 個問題',MOVES.length+' 個小動作','一張背面照','你的身體地圖'];
+  ol.innerHTML=STAGES.map((t,k)=>{ const st=(k+1)<cur||n==='result'&&k<3?'done':(k+1)===cur?'now':''; return `<li class="${st}"><i>${st==='done'?'✓':k+1}</i><b>${t}</b><span>${sub[k+1]}</span></li>`; }).join('');
+  const meta=document.querySelector('[data-rail-meta]'); if(meta){ const left=Math.max(0, FLOW.indexOf('result')-S.i); meta.textContent = cur===0?'約 5 分鐘，隨時可以按「上一步」':n==='result'?'完成了，往右看你的身體地圖':`還有大約 ${left} 個畫面`; } }
+// 鍵盤：Enter 下一步、← 上一步（輸入框裡不作用）
+document.addEventListener('keydown', e=>{ const t=e.target; if(t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.isContentEditable)) return; if(e.altKey||e.ctrlKey||e.metaKey) return;
+  if(e.key==='Enter'&&!(t&&(t.tagName==='BUTTON'||t.tagName==='A'))){ const b=[...document.querySelectorAll('#app [data-act=next]')].find(x=>!x.disabled&&x.offsetParent); if(b){ e.preventDefault(); b.click(); } }
+  if(e.key==='ArrowLeft'){ const b=document.querySelector('#app [data-act=back]'); if(b){ e.preventDefault(); b.click(); } } });
 const go=d=>{ S.i=Math.max(0,Math.min(FLOW.length-1,S.i+d)); render(); };
 const next=()=>go(1), back=()=>go(-1);
 

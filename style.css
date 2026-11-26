@@ -197,3 +197,37 @@ table{border-collapse:collapse;width:100%;font-size:12.5px;font-family:var(--fu)
 td,th{border-bottom:1px solid var(--line);padding:5px 4px;text-align:left;font-weight:400}
 th{color:var(--muted)}
 @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+
+/* ---------- 畫面切換與互動回饋（手機、桌機共用） ---------- */
+@keyframes bsmIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.app>.card,.app>.stages{animation:bsmIn .32s cubic-bezier(.2,.7,.2,1) both}
+.btn,.opt,.chip,.bk,.top button{transition:background-color .18s,border-color .18s,transform .12s,box-shadow .18s}
+.btn:active,.opt:active{transform:scale(.98)}
+@media (hover:hover){ .btn:hover{filter:brightness(1.06);box-shadow:0 4px 14px rgba(90,60,30,.18)} .opt:hover{border-color:var(--brown)} .bk:hover{color:var(--brown)} button,[data-act]{cursor:pointer} }
+:focus-visible{outline:2px solid var(--brown);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){ .app>.card,.app>.stages{animation:none} }
+.bsm-rail{display:none}
+
+/* ---------- 桌機版：左側進度欄＋右側內容 ---------- */
+@media (min-width:1024px){
+  .bsm-shell{padding:28px 24px 56px}
+  .bsm-shell{display:grid;grid-template-columns:280px minmax(0,600px);gap:40px;justify-content:center;align-items:start}
+  .bsm-shell .app{max-width:600px;width:100%;margin:0}
+  .bsm-rail{display:block;position:sticky;top:28px;padding:28px 24px;border-radius:14px;background:rgba(255,255,255,.55);border:1px solid var(--line);font-family:var(--fu)}
+  .bsm-rail-kicker{margin:0;font-size:12px;letter-spacing:.12em;color:var(--brown)}
+  .bsm-rail-title{margin:6px 0 22px;font-family:var(--fs);font-size:24px;line-height:1.35;color:var(--ink)}
+  .bsm-rail-title span{display:block;font-size:15px;color:var(--muted);letter-spacing:.3em}
+  .bsm-rail-steps{list-style:none;margin:0;padding:0;position:relative}
+  .bsm-rail-steps::before{content:"";position:absolute;left:13px;top:14px;bottom:14px;width:1px;background:var(--line)}
+  .bsm-rail-steps li{position:relative;display:grid;grid-template-columns:28px 1fr;column-gap:12px;padding:8px 0;color:var(--muted);transition:color .25s}
+  .bsm-rail-steps i{grid-row:span 2;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:13px;background:var(--paper);border:1px solid var(--line);transition:all .25s}
+  .bsm-rail-steps b{font-weight:500;font-size:16px;letter-spacing:.08em}
+  .bsm-rail-steps span{font-size:12.5px}
+  .bsm-rail-steps li.now{color:var(--ink)} .bsm-rail-steps li.now i{background:var(--brown);border-color:var(--brown);color:var(--paper);box-shadow:0 0 0 5px rgba(122,82,56,.12)}
+  .bsm-rail-steps li.done i{background:var(--soft);color:var(--brown)}
+  .bsm-rail-meta{margin:18px 0 0;padding-top:16px;border-top:1px solid var(--line);font-size:13.5px;color:var(--ink)}
+  .bsm-rail-note{margin:12px 0 0;font-size:12px;line-height:1.7;color:var(--muted)}
+  .bsm-shell .stages{display:none}
+  .bsm-shell .card{padding:28px 32px;box-shadow:0 10px 30px rgba(90,60,30,.07)}
+}
+@media (min-width:1280px){ .bsm-shell{grid-template-columns:300px minmax(0,640px);gap:56px} .bsm-shell .app{max-width:640px} }
